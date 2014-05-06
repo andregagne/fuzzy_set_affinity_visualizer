@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FuzzySetDynamicVisualizer", "FuzzySetDynamicVisualizer\FuzzySetDynamicVisualizer.csproj", "{96716B47-B137-4F51-A050-30EADB3BBD1A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C22E9769-0689-42E1-9E44-71816F03903C}"
+	ProjectSection(SolutionItems) = preProject
+		Performance1.psess = Performance1.psess
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{96716B47-B137-4F51-A050-30EADB3BBD1A}.Debug|x86.ActiveCfg = Debug|x86
+		{96716B47-B137-4F51-A050-30EADB3BBD1A}.Debug|x86.Build.0 = Debug|x86
+		{96716B47-B137-4F51-A050-30EADB3BBD1A}.Release|x86.ActiveCfg = Release|x86
+		{96716B47-B137-4F51-A050-30EADB3BBD1A}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
