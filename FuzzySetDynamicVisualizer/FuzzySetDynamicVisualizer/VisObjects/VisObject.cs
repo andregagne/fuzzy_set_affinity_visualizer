@@ -10,7 +10,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
     {
         protected Point location;  //this is the drawing point but not the actual center of the object
         protected Color colour;
-        protected static int minRadius = 2;
+        protected static int MINRADIUS = 2;
         protected int radius;  //is the radius
         protected Pen thisPen;
         protected bool hitBySelected = false;
@@ -20,7 +20,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         public VizObject()
         {
             this.location = new Point(0, 0);
-            this.radius = minRadius;
+            this.radius = MINRADIUS;
             this.colour = Color.Black;
             this.thisPen = new Pen(colour);
         }
@@ -29,16 +29,18 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         {
             this.radius = radius;
         }
-        public VizObject(int screenWidth, int screenHeight, float scale) : this()
+
+        //So we can have zooming
+        public VizObject(int screenWidth, int screenHeight, float scale) : this()  
         {
-            int tempNum = 0;
+            int smallestDimension = 0;
             if (screenWidth > screenHeight)
-                tempNum = screenHeight;
+                smallestDimension = screenHeight;
             else
-                tempNum = screenWidth;
-            this.radius = (int)((float)tempNum * scale);
-            if (this.radius < minRadius)
-                this.radius = minRadius;
+                smallestDimension = screenWidth;
+            this.radius = (int)((float)smallestDimension * scale);
+            if (this.radius < MINRADIUS)
+                this.radius = MINRADIUS;
         }
 
         public abstract void visualize(Graphics graphics);
@@ -92,7 +94,10 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         
         public void setRadius(int newRadius)
         {
-            this.radius = newRadius;
+            if (newRadius >= MINRADIUS)
+                this.radius = newRadius;
+            else
+                this.radius = MINRADIUS;
         }
 
         public int getRadius()

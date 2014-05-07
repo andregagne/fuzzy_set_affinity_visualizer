@@ -11,3 +11,15 @@ C:\Users\Andre Gagne\agagne\fuzzy_set_visualizer\FuzzySetDynamicVisualizer\Fuzzy
 C:\Users\Andre Gagne\agagne\fuzzy_set_visualizer\FuzzySetDynamicVisualizer\FuzzySetDynamicVisualizer\obj\x86\Release\GenerateResource.write.1.tlog
 C:\Users\Andre Gagne\agagne\fuzzy_set_visualizer\FuzzySetDynamicVisualizer\FuzzySetDynamicVisualizer\obj\x86\Release\VennDiagram+.exe
 C:\Users\Andre Gagne\agagne\fuzzy_set_visualizer\FuzzySetDynamicVisualizer\FuzzySetDynamicVisualizer\obj\x86\Release\VennDiagram+.pdb
+D:\Andre Gagne\Github\fuzzy_set_visualizer\FuzzySetDynamicVisualizer\FuzzySetDynamicVisualizer\obj\x86\Release\VennDiagram+.exe
+D:\Andre Gagne\Github\fuzzy_set_visualizer\FuzzySetDynamicVisualizer\FuzzySetDynamicVisualizer\obj\x86\Release\VennDiagram+.pdb
+D:\Andre Gagne\Github\fuzzy_set_visualizer\FuzzySetDynamicVisualizer\FuzzySetDynamicVisualizer\bin\Release\VennDiagram+.exe
+D:\Andre Gagne\Github\fuzzy_set_visualizer\FuzzySetDynamicVisualizer\FuzzySetDynamicVisualizer\bin\Release\VennDiagram+.pdb
+D:\Andre Gagne\Github\fuzzy_set_visualizer\FuzzySetDynamicVisualizer\FuzzySetDynamicVisualizer\obj\x86\Release\FuzzySetDynamicVisualizer.csprojResolveAssemblyReference.cache
+D:\Andre Gagne\Github\fuzzy_set_visualizer\FuzzySetDynamicVisualizer\FuzzySetDynamicVisualizer\obj\x86\Release\FuzzySetDynamicVisualizer.AboutBox1.resources
+D:\Andre Gagne\Github\fuzzy_set_visualizer\FuzzySetDynamicVisualizer\FuzzySetDynamicVisualizer\obj\x86\Release\FuzzySetDynamicVisualizer.Form1.resources
+D:\Andre Gagne\Github\fuzzy_set_visualizer\FuzzySetDynamicVisualizer\FuzzySetDynamicVisualizer\obj\x86\Release\FuzzySetDynamicVisualizer.FuzzySetsVizPanel.resources
+D:\Andre Gagne\Github\fuzzy_set_visualizer\FuzzySetDynamicVisualizer\FuzzySetDynamicVisualizer\obj\x86\Release\FuzzySetDynamicVisualizer.GettingStarted.resources
+D:\Andre Gagne\Github\fuzzy_set_visualizer\FuzzySetDynamicVisualizer\FuzzySetDynamicVisualizer\obj\x86\Release\FuzzySetDynamicVisualizer.ImportFileForm.resources
+D:\Andre Gagne\Github\fuzzy_set_visualizer\FuzzySetDynamicVisualizer\FuzzySetDynamicVisualizer\obj\x86\Release\FuzzySetDynamicVisualizer.Properties.Resources.resources
+D:\Andre Gagne\Github\fuzzy_set_visualizer\FuzzySetDynamicVisualizer\FuzzySetDynamicVisualizer\obj\x86\Release\FuzzySetDynamicVisualizer.csproj.GenerateResource.Cache
