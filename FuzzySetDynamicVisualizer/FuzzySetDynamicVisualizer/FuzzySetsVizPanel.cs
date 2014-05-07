@@ -14,6 +14,7 @@ namespace FuzzySetDynamicVisualizer
     {
         private List<VizObject> VizObjects = new List<VizObject>();
         private ToolStripStatusLabel statusLabel;
+        private Point previousMousePoint;
         private VizObject selected = null;
         private float scale = 1.0f;
         private bool heatmapSwitch = false;
@@ -98,6 +99,7 @@ namespace FuzzySetDynamicVisualizer
                 selected = vObj.objectHit(tempPoint);
                 if (selected != null)
                 {
+                    previousMousePoint = tempPoint; //saving this for the move
                     if (vObj is SetGroupObject && selected is SetObject) //special case for when we're pulling a set from a group
                     {
                         SetGroupObject group = (SetGroupObject) vObj;
@@ -155,10 +157,20 @@ namespace FuzzySetDynamicVisualizer
 
         private void onMouseMove(object sender, MouseEventArgs e)
         {
-            Point tempPoint = new Point((int)((float)e.Location.X / scale), (int)((float)e.Location.Y / scale));
             if (selected != null)
             {
-                selected.move(tempPoint);
+                //calculate the amount we've moved
+                int xDiff = (int)((float)e.Location.X / scale) - previousMousePoint.X;
+                int yDiff = (int)((float)e.Location.Y / scale) - previousMousePoint.Y;
+                
+                //save the new location
+                previousMousePoint.X = e.Location.X;
+                previousMousePoint.Y = e.Location.Y;
+
+                //now get the objects to move
+                selected.moveByDiff(xDiff, yDiff);
+                
+                //check to see if anything has been hit
                 foreach (VizObject vObj in VizObjects)
                 {
                     if (vObj != selected)
@@ -250,7 +262,7 @@ namespace FuzzySetDynamicVisualizer
             this.heatmapSwitch = useHeatmap;
             foreach (VizObject vObj in VizObjects)
             {
-                if (vObj is SetGroupObject)
+                if (vObj is SetGroupObject)  // currently heatmaps are targetted for set groups only, may do sets next
                 {
                     ((SetGroupObject)vObj).setUseHeatmap(useHeatmap);
                 }

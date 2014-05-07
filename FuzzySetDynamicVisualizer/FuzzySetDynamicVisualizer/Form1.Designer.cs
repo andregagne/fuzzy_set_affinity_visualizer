@@ -208,6 +208,11 @@
             0,
             0,
             0});
+            this.memberRadiusSpinner.Minimum = new decimal(new int[] {
+                VizObjects.VizObject.MINRADIUS,
+                0,
+                0,
+                0});
             this.memberRadiusSpinner.Name = "memberRadiusSpinner";
             this.memberRadiusSpinner.Size = new System.Drawing.Size(75, 20);
             this.memberRadiusSpinner.TabIndex = 5;

@@ -10,7 +10,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
     {
         protected Point location;  //this is the drawing point but not the actual center of the object
         protected Color colour;
-        protected static int MINRADIUS = 2;
+        public static int MINRADIUS = 2;
         protected int radius;  //is the radius
         protected Pen thisPen;
         protected bool hitBySelected = false;
@@ -46,7 +46,8 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         public abstract void visualize(Graphics graphics);
 
         public abstract void move(Point newPoint);
-
+        public abstract void moveByDiff(int xDiff, int yDiff);
+       
         public virtual bool isHit(Point point)
         {
             double xDifference = point.X - location.X;

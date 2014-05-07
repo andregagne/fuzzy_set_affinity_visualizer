@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("FuzzySetDynamicVisualizer")]
-[assembly: AssemblyDescription("This program is free to use as is with no guarantees or warranty \n Use at your own risk! \n \n visit my website for more projects: \n \n www.sfu.ca/~agagne")]
+[assembly: AssemblyDescription("This program is free to use as is with no guarantees or warranty \n Use at your own risk! \n")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Andre R. Gagne")]
 [assembly: AssemblyProduct("VennDiagram+")]

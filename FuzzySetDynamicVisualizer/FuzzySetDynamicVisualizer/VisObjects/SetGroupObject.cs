@@ -139,6 +139,10 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
         #endregion
 
+        #region moves
+        
+        // Regions for moving the object
+
         public override void move(Point newPoint)
         {
             this.move(newPoint.X, newPoint.Y);
@@ -156,6 +160,15 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 set.move(set.getLocation().X + xDiff, set.getLocation().Y + yDiff);
             }
         }
+
+        public override void moveByDiff(int xDiff, int yDiff)
+        {
+            this.location.X = this.location.X + xDiff;
+            this.location.Y = this.location.Y + yDiff;
+            foreach (SetObject set in setObjects)
+                set.moveByDiff(xDiff, yDiff);
+        }
+        #endregion
 
         public void addSetObj(SetObject newSetObj)
         {

@@ -105,11 +105,14 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             arrangeMember(newObj);
         }
 
+        //moves
+        // start with the most visible
         public override void move(Point newPoint)
         {
             this.move(newPoint.X, newPoint.Y);
         }
 
+        //and now the guts
         public void move(int newX, int newY)
         {
             int xDiff = newX - this.location.X;
@@ -117,6 +120,15 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
             this.location.X = newX;
             this.location.Y = newY;
+            foreach (MemberObject m in members)
+                m.move(m.getLocation().X + xDiff, m.getLocation().Y + yDiff);
+        }
+
+        //and now so it doesn't snap the middle to the cursor
+        public override void moveByDiff(int xDiff, int yDiff)
+        {
+            this.location.X = this.location.X + xDiff;
+            this.location.Y = this.location.Y + yDiff;
             foreach (MemberObject m in members)
                 m.move(m.getLocation().X + xDiff, m.getLocation().Y + yDiff);
         }

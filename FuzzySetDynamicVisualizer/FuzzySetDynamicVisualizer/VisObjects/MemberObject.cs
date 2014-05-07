@@ -58,6 +58,12 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             this.location.Y = newY;
         }
 
+        public override void moveByDiff(int xDiff, int yDiff)
+        {
+            this.location.X = this.location.X + xDiff;
+            this.location.Y = this.location.Y + yDiff;
+        }
+
         internal void setAlpha(int newAlpha)
         {
             this.colour = Color.FromArgb(newAlpha, colour.R, colour.G, colour.B);
