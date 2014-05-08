@@ -139,6 +139,11 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 arrangeMember(memObj);
         }
 
+        /*
+         * arranges the members in the set.  
+         * 
+         * The angel around the center is random but the 
+        */
         private void arrangeMember(MemberObject memObj)
         {
             double membershipRate = ((double)memObj.getMember().getMembership(set) / 100D);

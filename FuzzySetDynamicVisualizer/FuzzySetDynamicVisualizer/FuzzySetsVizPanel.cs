@@ -87,6 +87,7 @@ namespace FuzzySetDynamicVisualizer
         {
 
         }
+
         #endregion
 
         #region mouse stuff
@@ -124,6 +125,7 @@ namespace FuzzySetDynamicVisualizer
 
         private void onMouseUp(object sender, MouseEventArgs e)
         {
+            //adds a set to another set or a group of sets if the first set is over them.
             if (selected != null && selected is SetObject)
             {
                 List<SetObject> sets = new List<SetObject>();
@@ -134,6 +136,7 @@ namespace FuzzySetDynamicVisualizer
                         if (obj is SetObject)
                         {
                             sets.Add((SetObject)obj);
+                            break;
                         }
                         else if (obj is SetGroupObject)
                         {
