@@ -136,11 +136,11 @@ namespace FuzzySetDynamicVisualizer
                         if (obj is SetObject)
                         {
                             sets.Add((SetObject)obj);
-                            break;
                         }
                         else if (obj is SetGroupObject)
                         {
                             ((SetGroupObject)obj).addSetObj((SetObject)selected);
+                            sets.Clear();
                             this.VizObjects.Remove(selected);
                             this.Invalidate();
                             break;
@@ -167,8 +167,8 @@ namespace FuzzySetDynamicVisualizer
                 int yDiff = (int)((float)e.Location.Y / scale) - previousMousePoint.Y;
                 
                 //save the new location
-                previousMousePoint.X = e.Location.X;
-                previousMousePoint.Y = e.Location.Y;
+                previousMousePoint.X = (int)((float)e.Location.X / scale);
+                previousMousePoint.Y = (int)((float)e.Location.Y / scale);
 
                 //now get the objects to move
                 selected.moveByDiff(xDiff, yDiff);
@@ -184,6 +184,7 @@ namespace FuzzySetDynamicVisualizer
                 }
                 this.Invalidate();
             }
+            statusLabel.Text = e.Location.X + ", " + e.Location.Y;
         }
         #endregion
 
@@ -269,6 +270,40 @@ namespace FuzzySetDynamicVisualizer
                 {
                     ((SetGroupObject)vObj).setUseHeatmap(useHeatmap);
                 }
+            }
+            this.Invalidate();
+        }
+
+        //Need to recenter the objects based upon the current zoom and available space.
+        internal void recenterObjects()
+        {
+            //first we need to determine the centerpoint of all of the vizObjects
+            //we do this by averaging all of the X's and Y's
+            int calculatedX = 0;
+            int calculatedY = 0;
+
+            //sum the X's and Ys
+            foreach (VizObject vObj in VizObjects)
+            {
+                calculatedX += vObj.getLocation().X;
+                calculatedY += vObj.getLocation().Y;
+            }
+
+            //now we average the sums
+            calculatedX = calculatedX / VizObjects.Count;
+            calculatedY = calculatedY / VizObjects.Count;
+
+            //get the center of the window
+            int windowCenterX = this.Size.Width / 2;
+            int windowCenterY = this.Size.Height / 2;
+
+             //calculate difference
+            int xDiff = windowCenterX - calculatedX;
+            int yDiff = windowCenterY - calculatedY;
+
+            foreach(VizObject vObj in VizObjects)
+            {
+                vObj.moveByDiff(xDiff, yDiff);
             }
             this.Invalidate();
         }

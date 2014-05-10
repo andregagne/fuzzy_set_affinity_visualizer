@@ -43,17 +43,17 @@ namespace FuzzySetDynamicVisualizer
 
                 while (!file.EndOfStream)
                 {
-                    Dictionary<Set, int> test = new Dictionary<Set, int>();
+                    Dictionary<Set, int> setMemberships = new Dictionary<Set, int>();
 
                     string[] linePieces = file.ReadLine().Split(new char[] { '\t' });
                     for (int i = 1; i < linePieces.Length; i++)
                     {
                         int membership = 0;
                         int.TryParse(linePieces[i], out membership);
-                        test.Add(sets[i - 1], membership);
+                        setMemberships.Add(sets[i - 1], membership);
                     }
 
-                    memberList.Add(new Member(linePieces[0], test));
+                    memberList.Add(new Member(linePieces[0], setMemberships));
                 }
 
                 List<VizObject> vizObj = new List<VizObject>();
@@ -114,6 +114,11 @@ namespace FuzzySetDynamicVisualizer
         {
             GettingStarted box = new GettingStarted();
             box.ShowDialog();
+        }
+
+        private void onCenterButtonClick(object sender, EventArgs e)
+        {
+            this.vizPanel.recenterObjects();
         }
     }
 }

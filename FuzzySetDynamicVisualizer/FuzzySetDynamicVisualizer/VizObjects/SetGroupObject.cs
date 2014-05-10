@@ -11,15 +11,10 @@ namespace FuzzySetDynamicVisualizer.VizObjects
     public class SetGroupObject : VizObject
     {
         private List<SetObject> setObjects = new List<SetObject>();
+        private List<HeatmapTriangleObject> heatmapObjects = new List<HeatmapTriangleObject>();
         private Dictionary<Set, SetObject> setStructures = new Dictionary<Set, SetObject>();
         //        private List<HeatmapObj> heatmapObjs = new List<HeatmapObj>();
-        private int heatmapBinSize = 5;
-
-        //heatmapSums is layed out like a multi dimensional array in memory.
-        //the problem is that we don't know how large it's supposed to be, the number of sets is variable
-        //
-        private int[] heatmapSums = null;
-        private int maxSums = 0;
+        private int heatmapRecursionDepth = 1;  //this should never go below 1        
 
         private bool useHeatmap = false;
 
@@ -57,7 +52,17 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             List<Point> points = new List<Point>();
             Pen linePen = new Pen(Color.FromArgb(150, 255, 0, 0));
 
+            //draw the circle for this set group
             graphics.FillEllipse(new SolidBrush(colour), this.location.X - this.radius, this.location.Y - this.radius, radius * 2, radius * 2);
+
+            if (useHeatmap)
+            {
+                foreach (HeatmapTriangleObject triangle in heatmapObjects)
+                {
+                    triangle.visualize(graphics);
+                }
+            }
+
             foreach (SetObject setObj in setObjects)
             {
                 //draws the center point for the sets
@@ -70,11 +75,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 {
                     foreach (MemberObject mObj in setObj.getMemberObjs())
                         mObj.visualize(graphics);
-                }
-                else
-                {
-                    vizualizeHeatmap(graphics);
-                }
+                }                
 
                 points.Add(setObj.getLocation());
                 graphics.DrawLine(linePen, this.location, setObj.getLocation());
@@ -82,61 +83,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             graphics.DrawPolygon(linePen, points.ToArray());
         }
 
-        private void vizualizeHeatmap(Graphics graphics)
-        {
-            if (heatmapSums != null)
-            {
-                //the heart of the heatmap visualization
-                //the basis of this is that the heatmapsums object
-                //heatmapSums is layed out like any array in memory                                               
-                int binsPerSet = (int)(Math.Ceiling(100f / (float)this.heatmapBinSize));
-                int newRadius = 5;
-
-                for (int i = 0; i < heatmapSums.Length; i++)
-                {
-                    //need to do a deep copy of this to get it to work..
-                    int amount = heatmapSums[i];
-                    int membershipPercent = 0;
-                    int workinglocation = i;
-                    int binArraySize = (int)Math.Pow(binsPerSet, setObjects.Count - 2);
-                    int dotAlpha = (int)((float)amount / (float)maxSums * 255f);
-                    Color dotColor = Color.FromArgb(dotAlpha, colour);
-
-                    int xDiff = 0;
-                    int yDiff = 0;
-
-                    for (int p = setObjects.Count - 2; p >= 0; p--)
-                    {
-                        //i * heatmapBinSize = location
-                        //largest size = size of amoutn
-                        int temp = workinglocation / binArraySize;
-
-                        int memPercent = (int)((float)temp / (float)(binsPerSet) * 100f);
-                        int setXdif = (setObjects[p].getLocation().X - location.X);
-                        int setYdiff = (setObjects[p].getLocation().Y - location.Y);
-
-                        xDiff += (int)((float)memPercent / 100f * (float)setXdif);
-                        yDiff += (int)((float)memPercent / 100f * (float)setYdiff);
-
-                        workinglocation = workinglocation % binArraySize;
-                        membershipPercent += memPercent;
-                        binArraySize /= binsPerSet;
-                    }
-                    int remainderPercent = 100 - membershipPercent;
-
-                    xDiff += (int)((float)remainderPercent / 100f * (float)(setObjects[setObjects.Count - 1].getLocation().X - location.X));
-                    yDiff += (int)((float)remainderPercent / 100f * (float)(setObjects[setObjects.Count - 1].getLocation().Y - location.Y));
-
-                    graphics.FillEllipse(new SolidBrush(dotColor), location.X + xDiff - newRadius, location.Y + yDiff - newRadius, newRadius * 2, newRadius * 2);
-                }
-
-                Font thisFont = new Font("Arial", 8);
-                string text = "The maximum value is " + maxSums;
-
-                graphics.DrawString(text, thisFont, new SolidBrush(Color.Black), (float)(location.X - (radius / 2)), (float)(location.Y + radius + 50));
-            }
-        }
-
+        
         #endregion
 
         #region moves
@@ -159,6 +106,11 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             {
                 set.move(set.getLocation().X + xDiff, set.getLocation().Y + yDiff);
             }
+            if (useHeatmap)
+            {
+                foreach (HeatmapTriangleObject triangle in heatmapObjects)
+                    triangle.move(newX, newY);
+            }
         }
 
         public override void moveByDiff(int xDiff, int yDiff)
@@ -167,6 +119,11 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             this.location.Y = this.location.Y + yDiff;
             foreach (SetObject set in setObjects)
                 set.moveByDiff(xDiff, yDiff);
+            if (useHeatmap)
+            {
+                foreach (HeatmapTriangleObject triangle in heatmapObjects)
+                    triangle.moveByDiff(xDiff, yDiff);
+            }
         }
         #endregion
 
@@ -238,11 +195,9 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 angle += startAngle;
             }
 
-            if (!useHeatmap)
-            {
-                setupOverdraw();
-            }
-            else
+            setupOverdraw();
+
+            if (useHeatmap)
             {
                 setupHeatmap();
             }
@@ -274,41 +229,85 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             }
         }
 
+
+        /*
+         * 
+         * There are several ways to setup the heatmap.  
+         * What I'm going to do is break up each triangle into 4 sub triangles and then use the graphical location for each to bin the members.
+         * Not the prettiest method, but it will work and may be faster than calculating N dimensional barycentric coordinates.
+         * 
+         */
         private void setupHeatmap()
         {
-            //not sure if we should be using the heatmap object
-            //heatmapSums is a multi dimensional array
-            int binsPerSet = (int)(Math.Ceiling(100f / (float)this.heatmapBinSize));
+            heatmapObjects.Clear();
 
-            heatmapSums = new int[(int)Math.Pow(binsPerSet, (setObjects.Count - 1))];
+            List<MemberObject> members = new List<MemberObject>();
+            List<Point> setLocations = new List<Point>();
 
-            //need n-1 sets to get affinities for binning
-            List<Set> sets = new List<Set>();
-            for (int i = 0; i < setObjects.Count - 1; i++)
-                sets.Add(setObjects[i].getSet());
+            //initial setup we'll always have to do
+            //pull what we want from the sets
+            foreach (SetObject set in setObjects)
+            {
+                members.AddRange(set.getMemberObjs());
+                setLocations.Add(set.getLocation());
+            }
 
+            //adding the initial heatmap triangles
+            for (int i = 0; i < setLocations.Count; i++)
+            {
+                if (i != setLocations.Count - 1)
+                    this.heatmapObjects.Add(new HeatmapTriangleObject(members.Count, new Point[] { this.getLocation(), setLocations[i], setLocations[i+1] }));
+                else
+                    this.heatmapObjects.Add(new HeatmapTriangleObject(members.Count, new Point[] { this.getLocation(), setLocations[i], setLocations[0] }));
 
-            foreach (SetObject setObj in setObjects)
-                foreach (MemberObject memberObj in setObj.getMemberObjs())
+            }
+
+            foreach (MemberObject member in members)
+            {
+                bool isAdded = false;
+                foreach (HeatmapTriangleObject triangle in heatmapObjects)
                 {
-                    Member mem = memberObj.getMember();
-
-                    int tempSize = 1;
-                    int binArrayLoc = 0;
-                    int memberShipPercent = 0;
-                    //binning will worok by first set is miner array length, next is next length, etc.
-                    foreach (Set set in sets)
+                    if (triangle.isPointInside(member.getLocation()))
                     {
-                        int tempPercent = mem.getMembership(set);
-                        binArrayLoc += (int)((float)tempPercent / (float)this.heatmapBinSize) * tempSize;
-                        tempSize *= binsPerSet;
-                        memberShipPercent += tempPercent;
+                        triangle.addMember(member);
+                        isAdded = true;
+                        break;
                     }
-                    //increment correct location in bin
-                    heatmapSums[binArrayLoc]++;
-                    if (heatmapSums[binArrayLoc] > maxSums)
-                        maxSums = heatmapSums[binArrayLoc];
                 }
+                if (!isAdded)
+                    Console.Out.WriteLine("Member wasn't added to a triangle " + member.getLocation().X + ", " + member.getLocation().Y);
+            }
+
+            
+            if (heatmapRecursionDepth > 0)
+            {
+                List<HeatmapTriangleObject> subTriangles = new List<HeatmapTriangleObject>();
+                foreach (HeatmapTriangleObject triangle in heatmapObjects)
+                {
+                    subTriangles.AddRange(getSubTriangles(1, triangle));
+                }
+                heatmapObjects = subTriangles;
+            }
+        }
+
+        private List<HeatmapTriangleObject> getSubTriangles(int currentDepth, HeatmapTriangleObject currentTriangle)
+        {
+            List<HeatmapTriangleObject> returnTriangles = new List<HeatmapTriangleObject>();
+
+            returnTriangles = currentTriangle.getSubTriangles();
+
+            if (currentDepth == heatmapRecursionDepth)
+            {
+                return returnTriangles;
+            } else
+            {
+                List<HeatmapTriangleObject> returnSubTriangles = new List<HeatmapTriangleObject>();
+                foreach (HeatmapTriangleObject triangle in returnTriangles)
+                {
+                    returnSubTriangles.AddRange(getSubTriangles(currentDepth + 1, triangle));
+                }
+                return returnSubTriangles;
+            }            
         }
 
         #endregion

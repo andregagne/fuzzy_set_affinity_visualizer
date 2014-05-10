@@ -90,12 +90,13 @@
     <Compile Include="ImportFileForm.Designer.cs">
       <DependentUpon>ImportFileForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="VisObjects\MemberObject.cs" />
+    <Compile Include="VizObjects\HeatmapTriangleObject.cs" />
+    <Compile Include="VizObjects\MemberObject.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="VisObjects\SetGroupObject.cs" />
-    <Compile Include="VisObjects\SetObject.cs" />
-    <Compile Include="VisObjects\VisObject.cs" />
+    <Compile Include="VizObjects\SetGroupObject.cs" />
+    <Compile Include="VizObjects\SetObject.cs" />
+    <Compile Include="VizObjects\VizObject.cs" />
     <EmbeddedResource Include="AboutBox1.resx">
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </EmbeddedResource>

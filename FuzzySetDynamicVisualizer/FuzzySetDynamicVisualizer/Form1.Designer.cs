@@ -39,6 +39,7 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.centerButton = new System.Windows.Forms.Button();
             this.heatmapCheckbox = new System.Windows.Forms.CheckBox();
             this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
@@ -147,6 +148,7 @@
             // 
             this.panel2.AutoSize = true;
             this.panel2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.panel2.Controls.Add(this.centerButton);
             this.panel2.Controls.Add(this.heatmapCheckbox);
             this.panel2.Controls.Add(this.numericUpDown1);
             this.panel2.Controls.Add(this.label4);
@@ -162,21 +164,30 @@
             this.panel2.Size = new System.Drawing.Size(94, 492);
             this.panel2.TabIndex = 1;
             // 
+            // centerButton
+            // 
+            this.centerButton.Location = new System.Drawing.Point(7, 57);
+            this.centerButton.Name = "centerButton";
+            this.centerButton.Size = new System.Drawing.Size(75, 23);
+            this.centerButton.TabIndex = 10;
+            this.centerButton.Text = "Center";
+            this.centerButton.UseVisualStyleBackColor = true;
+            this.centerButton.Click += new System.EventHandler(this.onCenterButtonClick);
+            // 
             // heatmapCheckbox
             // 
             this.heatmapCheckbox.AutoSize = true;
-            this.heatmapCheckbox.Location = new System.Drawing.Point(7, 255);
+            this.heatmapCheckbox.Location = new System.Drawing.Point(3, 274);
             this.heatmapCheckbox.Name = "heatmapCheckbox";
             this.heatmapCheckbox.Size = new System.Drawing.Size(91, 17);
             this.heatmapCheckbox.TabIndex = 9;
             this.heatmapCheckbox.Text = "Use Heatmap";
             this.heatmapCheckbox.UseVisualStyleBackColor = true;
-            this.heatmapCheckbox.Visible = false;
             this.heatmapCheckbox.CheckStateChanged += new System.EventHandler(this.onHeatmapChecked);
             // 
             // numericUpDown1
             // 
-            this.numericUpDown1.Location = new System.Drawing.Point(7, 212);
+            this.numericUpDown1.Location = new System.Drawing.Point(7, 236);
             this.numericUpDown1.Maximum = new decimal(new int[] {
             20,
             0,
@@ -194,7 +205,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(4, 196);
+            this.label4.Location = new System.Drawing.Point(4, 220);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(85, 13);
             this.label4.TabIndex = 6;
@@ -202,17 +213,17 @@
             // 
             // memberRadiusSpinner
             // 
-            this.memberRadiusSpinner.Location = new System.Drawing.Point(7, 150);
+            this.memberRadiusSpinner.Location = new System.Drawing.Point(7, 174);
             this.memberRadiusSpinner.Maximum = new decimal(new int[] {
             20,
             0,
             0,
             0});
             this.memberRadiusSpinner.Minimum = new decimal(new int[] {
-                VizObjects.VizObject.MINRADIUS,
-                0,
-                0,
-                0});
+            2,
+            0,
+            0,
+            0});
             this.memberRadiusSpinner.Name = "memberRadiusSpinner";
             this.memberRadiusSpinner.Size = new System.Drawing.Size(75, 20);
             this.memberRadiusSpinner.TabIndex = 5;
@@ -226,7 +237,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(4, 134);
+            this.label3.Location = new System.Drawing.Point(4, 158);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(81, 13);
             this.label3.TabIndex = 4;
@@ -239,7 +250,7 @@
             0,
             0,
             0});
-            this.memberAlphaSpinner.Location = new System.Drawing.Point(7, 93);
+            this.memberAlphaSpinner.Location = new System.Drawing.Point(7, 117);
             this.memberAlphaSpinner.Maximum = new decimal(new int[] {
             255,
             0,
@@ -258,11 +269,11 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(4, 77);
+            this.label2.Location = new System.Drawing.Point(4, 101);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(74, 13);
+            this.label2.Size = new System.Drawing.Size(82, 13);
             this.label2.TabIndex = 2;
-            this.label2.Text = "Member alpha";
+            this.label2.Text = "Member Visiblity";
             // 
             // zoomSpinner
             // 
@@ -347,6 +358,7 @@
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem gettingStartedToolStripMenuItem;
+        private System.Windows.Forms.Button centerButton;
     }
 }
 
