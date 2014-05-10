@@ -146,7 +146,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         */
         private void arrangeMember(MemberObject memObj)
         {
-            double membershipRate = ((double)memObj.getMember().getMembership(set) / 100D);
+            double membershipRate = ((double)memObj.getMember().getMembershipAsPercent(set) / 100D);
             double memberRadius = membershipRate * (double)radius;
             double angle = randGenerator.NextDouble() * (2D * Math.PI);
 

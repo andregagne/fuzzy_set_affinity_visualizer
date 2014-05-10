@@ -12,7 +12,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
     {
         protected List<MemberObject> members;
         protected Point[] points = new Point[3];
-        protected int maxMemberNum = 1; //needed to determine alpha/shading levels
+        protected int numMaxMembers = 1; //needed to determine alpha/shading levels
         
 
         public HeatmapTriangleObject() : base(){
@@ -26,7 +26,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             : base()
         {
             this.points = points;
-            this.maxMemberNum = maxMemberNum;
+            this.numMaxMembers = maxMemberNum;
             this.members = new List<MemberObject>();
         }
 
@@ -34,13 +34,13 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         {
             this.points = points;
             this.members = members;
-            this.maxMemberNum = maxMemberNum;
+            this.numMaxMembers = maxMemberNum;
         }
 
         public HeatmapTriangleObject(List<MemberObject> members, int maxMemberNum, Point point1, Point point2, Point point3) : base()
         {
             this.members = members;
-            this.maxMemberNum = maxMemberNum;
+            this.numMaxMembers = maxMemberNum;
             this.points[0] = point1;
             this.points[1] = point2;
             this.points[2] = point3;
@@ -85,7 +85,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         private Color determineColor()
         {
             //this is for straight gradiant alphas
-            int alpha = (int)((float)members.Count / (float)maxMemberNum * 255);
+            int alpha = (int)((float)members.Count / (float)numMaxMembers * 255);
 
             //this is for a logarithmic scale
             //int alpha = (int)(Math.Log((double)members.Count, (double)maxMemberNum) * 255);
@@ -98,9 +98,19 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             this.members.Add(newMember);
         }
 
+        public void addMembers(List<MemberObject> newMembers)
+        {
+            this.members.AddRange(newMembers);
+        }
+
         public List<MemberObject> getMembers()
         {
             return members;
+        }
+
+        public int getNumMaxMembers()
+        {
+            return numMaxMembers;
         }
 
         public List<HeatmapTriangleObject> getSubTriangles()
@@ -120,10 +130,10 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 (int)(((float)points[2].Y + (float)points[0].Y) / 2.0f)
                 );
 
-            subTriangles.Add(new HeatmapTriangleObject(maxMemberNum, new Point[] { points[0], medialPoint1, medialPoint3}));
-            subTriangles.Add(new HeatmapTriangleObject(maxMemberNum, new Point[] { points[1], medialPoint1, medialPoint2 }));
-            subTriangles.Add(new HeatmapTriangleObject(maxMemberNum, new Point[] { points[2], medialPoint2, medialPoint3 }));
-            subTriangles.Add(new HeatmapTriangleObject(maxMemberNum, new Point[] { medialPoint1, medialPoint2, medialPoint3 }));
+            subTriangles.Add(new HeatmapTriangleObject(numMaxMembers, new Point[] { points[0], medialPoint1, medialPoint3}));
+            subTriangles.Add(new HeatmapTriangleObject(numMaxMembers, new Point[] { points[1], medialPoint1, medialPoint2 }));
+            subTriangles.Add(new HeatmapTriangleObject(numMaxMembers, new Point[] { points[2], medialPoint2, medialPoint3 }));
+            subTriangles.Add(new HeatmapTriangleObject(numMaxMembers, new Point[] { medialPoint1, medialPoint2, medialPoint3 }));
 
 
             foreach (MemberObject member in members)
@@ -172,6 +182,11 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             // u and v will only be positive if the point is between them on the smallest side, will only sum to 1 if it is within the triangles
             isInside = (u >= 0) && (v >= 0) && (u + v < 1);
             return isInside;
+        }
+
+        public Point[] getPoints()
+        {
+            return this.points;
         }
     }
 }

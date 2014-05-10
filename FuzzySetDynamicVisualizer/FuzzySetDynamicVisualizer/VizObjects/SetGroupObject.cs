@@ -13,6 +13,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         private List<SetObject> setObjects = new List<SetObject>();
         private List<HeatmapTriangleObject> heatmapObjects = new List<HeatmapTriangleObject>();
         private Dictionary<Set, SetObject> setStructures = new Dictionary<Set, SetObject>();
+        
         //        private List<HeatmapObj> heatmapObjs = new List<HeatmapObj>();
         private int heatmapRecursionDepth = 1;  //this should never go below 1        
 
@@ -218,7 +219,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
                     foreach (SetObject setStuff in setObjects)
                     {
-                        float membership = ((float)tempMember.getMembership(setStuff.getSet()) / 100.0f);
+                        float membership = ((float)tempMember.getMembershipAsPercent(setStuff.getSet()) / 100.0f);
                         int xDiff = (int)((float)(setStuff.getLocation().X - this.location.X) * membership);
                         int yDiff = (int)((float)(setStuff.getLocation().Y - this.location.Y) * membership);
                         memberX += xDiff;
@@ -229,6 +230,9 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             }
         }
 
+        #endregion
+
+        #region Heatmaps!
 
         /*
          * 

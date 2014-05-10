@@ -26,7 +26,7 @@ namespace FuzzySetDynamicVisualizer.DataStructures
                 int membership = 0;
                 if (membershipDictionary.TryGetValue(keys.Current, out membership))
                 {
-                    totalValue += membership;
+                    totalValue += membership;  //the total value is so we can do the membership as a percent of all memberships
                     if (membership == maxValue)
                         maxSet = keys.Current;
                 }
@@ -39,7 +39,7 @@ namespace FuzzySetDynamicVisualizer.DataStructures
         /**
          * returns an int between 0 and 100
          */
-        public int getMembership(Set set)
+        public int getMembershipAsPercent(Set set)
         {
             int returnVal = 0;
             if (!setMembership.TryGetValue(set, out returnVal))
