@@ -35,7 +35,7 @@ namespace FuzzySet_Sample_Generator
                 //add name
                 sampleLine.Append(RandomString(4) + "\t");
 
-                //the idea is to start at 100% and essentially bag pick the values for the sets
+                //A member can be any percentage a member of a set
                 int randomness = 100;
                 for (int j = 0; j < numSets - 1; j++)
                 {
@@ -44,7 +44,7 @@ namespace FuzzySet_Sample_Generator
                     sampleLine.Append(setRandom + "\t");
                 }
 
-                //now we add the remainder to the last set
+                //and now so we don't have a trailing '\t'
                 sampleLine.Append(random.Next(randomness));
 
                 outFile.WriteLine(sampleLine.ToString());
