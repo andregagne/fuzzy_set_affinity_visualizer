@@ -15,7 +15,7 @@ namespace FuzzySetDynamicVisualizer
     public partial class Form1 : Form
     {
         FuzzySetsVizPanel vizPanel;
-        static string titleText = "VennDiagram+ ";
+        static string titleText = "Fuzzy Set Affinity Visualizer";
 
         public Form1()
         {

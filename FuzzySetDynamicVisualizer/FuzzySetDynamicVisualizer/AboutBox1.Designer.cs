@@ -136,7 +136,7 @@
             this.textBoxDescription.TabIndex = 23;
             this.textBoxDescription.TabStop = false;
             this.textBoxDescription.Text = "This program is free to use as is with no guarantees or warranty\r\nUse at your own" +
-                " risk!\r\n\r\nvisit my website for more projects:\r\n\r\nwww.sfu.ca/~agagne";
+    " risk!\r\n\r\nvisit my website for more projects:\r\n\r\nwww.sfu.ca/~agagne";
             // 
             // okButton
             // 

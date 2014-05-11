@@ -1,7 +1,7 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FuzzySetDynamicVisualizer", "FuzzySetDynamicVisualizer\FuzzySetDynamicVisualizer.csproj", "{96716B47-B137-4F51-A050-30EADB3BBD1A}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FuzzySetAffinityVisualizer", "FuzzySetDynamicVisualizer\FuzzySetAffinityVisualizer.csproj", "{96716B47-B137-4F51-A050-30EADB3BBD1A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C22E9769-0689-42E1-9E44-71816F03903C}"
 	ProjectSection(SolutionItems) = preProject
