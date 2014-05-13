@@ -91,7 +91,6 @@
       <DependentUpon>ImportFileForm.cs</DependentUpon>
     </Compile>
     <Compile Include="VizObjects\Heatmaps\HeatmapTriangleTree.cs" />
-    <Compile Include="VizObjects\Heatmaps\HeatmapTriangleObject.cs" />
     <Compile Include="VizObjects\MemberObject.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
