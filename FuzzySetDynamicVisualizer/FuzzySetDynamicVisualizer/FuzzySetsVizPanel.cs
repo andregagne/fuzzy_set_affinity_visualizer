@@ -18,7 +18,6 @@ namespace FuzzySetDynamicVisualizer
         private VizObject selected = null;
         private float scale = 1.0f;
         private bool heatmapSwitch = false;
-        private int currentHeatmapDepth = 1;
 
         public FuzzySetsVizPanel(ToolStripStatusLabel label)
         {
@@ -198,7 +197,6 @@ namespace FuzzySetDynamicVisualizer
         public void setupSetGroup(List<SetObject> sets)
         {
             SetGroupObject newGroup = new SetGroupObject(sets, Color.Green, heatmapSwitch);
-            newGroup.setHeatmapDepth(currentHeatmapDepth);
 
             foreach (SetObject set in sets)
             {
@@ -308,22 +306,6 @@ namespace FuzzySetDynamicVisualizer
                 vObj.moveByDiff(xDiff, yDiff);
             }
             this.Invalidate();
-        }
-
-       
-        internal void changeRecursionDepth(int newDepth)
-        {
-            this.currentHeatmapDepth = newDepth;
-            if(heatmapSwitch){ // no reason to invalidate if we don't have anything to change
-                foreach (VizObject vObj in VizObjects)
-                {
-                    if (vObj is SetGroupObject)  // currently heatmaps are targetted for set groups only, may do sets next
-                    {
-                        ((SetGroupObject)vObj).setHeatmapDepth(newDepth);
-                    }
-                }
-                this.Invalidate();
-            }
         }
     }
 }

@@ -11,7 +11,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
     public class SetGroupObject : VizObject
     {
         private List<SetObject> setObjects = new List<SetObject>();
-        private List<HeatmapTriangleTree> heatmapObjects = new List<HeatmapTriangleTree>();
+        private List<HeatmapTriangleObject> heatmapObjects = new List<HeatmapTriangleObject>();
         private Dictionary<Set, SetObject> setStructures = new Dictionary<Set, SetObject>();
         
         //        private List<HeatmapObj> heatmapObjs = new List<HeatmapObj>();
@@ -58,7 +58,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
             if (useHeatmap)
             {
-                foreach (HeatmapTriangleTree triangle in heatmapObjects)
+                foreach (HeatmapTriangleObject triangle in heatmapObjects)
                 {
                     triangle.visualize(graphics);
                 }
@@ -109,7 +109,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             }
             if (useHeatmap)
             {
-                foreach (HeatmapTriangleTree triangle in heatmapObjects)
+                foreach (HeatmapTriangleObject triangle in heatmapObjects)
                     triangle.move(newX, newY);
             }
         }
@@ -122,7 +122,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 set.moveByDiff(xDiff, yDiff);
             if (useHeatmap)
             {
-                foreach (HeatmapTriangleTree triangle in heatmapObjects)
+                foreach (HeatmapTriangleObject triangle in heatmapObjects)
                     triangle.moveByDiff(xDiff, yDiff);
             }
         }
@@ -260,17 +260,16 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             for (int i = 0; i < setLocations.Count; i++)
             {
                 if (i != setLocations.Count - 1)
-                    this.heatmapObjects.Add(new HeatmapTriangleTree(members.Count, null, new Point[] { this.getLocation(), setLocations[i], setLocations[i+1] }));
+                    this.heatmapObjects.Add(new HeatmapTriangleObject(members.Count, new Point[] { this.getLocation(), setLocations[i], setLocations[i+1] }));
                 else
-                    this.heatmapObjects.Add(new HeatmapTriangleTree(members.Count, null, new Point[] { this.getLocation(), setLocations[i], setLocations[0] }));
+                    this.heatmapObjects.Add(new HeatmapTriangleObject(members.Count, new Point[] { this.getLocation(), setLocations[i], setLocations[0] }));
 
             }
 
-            //add the members to the right triangles to start
             foreach (MemberObject member in members)
             {
                 bool isAdded = false;
-                foreach (HeatmapTriangleTree triangle in heatmapObjects)
+                foreach (HeatmapTriangleObject triangle in heatmapObjects)
                 {
                     if (triangle.isPointInside(member.getLocation()))
                     {
@@ -283,16 +282,36 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                     Console.Out.WriteLine("Member wasn't added to a triangle " + member.getLocation().X + ", " + member.getLocation().Y);
             }
 
-            //split them
-            this.splitHeatmapsToDepth(heatmapRecursionDepth);
+            
+            if (heatmapRecursionDepth > 0)
+            {
+                List<HeatmapTriangleObject> subTriangles = new List<HeatmapTriangleObject>();
+                foreach (HeatmapTriangleObject triangle in heatmapObjects)
+                {
+                    subTriangles.AddRange(getSubTriangles(1, triangle));
+                }
+                heatmapObjects = subTriangles;
+            }
         }
 
-        private void splitHeatmapsToDepth(int depth)
+        private List<HeatmapTriangleObject> getSubTriangles(int currentDepth, HeatmapTriangleObject currentTriangle)
         {
-            foreach (HeatmapTriangleTree triangle in heatmapObjects)
+            List<HeatmapTriangleObject> returnTriangles = new List<HeatmapTriangleObject>();
+
+            returnTriangles = currentTriangle.getSubTriangles();
+
+            if (currentDepth == heatmapRecursionDepth)
             {
-                triangle.splitToDepth(0, depth);
-            }
+                return returnTriangles;
+            } else
+            {
+                List<HeatmapTriangleObject> returnSubTriangles = new List<HeatmapTriangleObject>();
+                foreach (HeatmapTriangleObject triangle in returnTriangles)
+                {
+                    returnSubTriangles.AddRange(getSubTriangles(currentDepth + 1, triangle));
+                }
+                return returnSubTriangles;
+            }            
         }
 
         #endregion
@@ -343,8 +362,6 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         }
         #endregion
 
-        #region getters and setters
-
         internal void setMemberRadius(int newRadius)
         {
             foreach (SetObject setObj in setObjects)
@@ -384,29 +401,5 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         {
             return setObjects;
         }
-
-        internal void setHeatmapDepth(int newDepth)
-        {
-            if (newDepth > heatmapRecursionDepth)
-            { //need to split
-                foreach (HeatmapTriangleTree triangle in heatmapObjects)
-                {
-                    triangle.splitToDepth(0, newDepth);
-                }
-                heatmapRecursionDepth = newDepth;
-            }
-            else if (newDepth < heatmapRecursionDepth)
-            { // need to collapse
-                foreach (HeatmapTriangleTree triangle in heatmapObjects)
-                {
-                    triangle.collapseToDepth(0, newDepth);
-                }
-                heatmapRecursionDepth = newDepth;
-            }
-            else
-                Console.Out.WriteLine("Shouldn't be here, a change was thrown when there wasn't one");
-        }
-
-        #endregion
     }
 }

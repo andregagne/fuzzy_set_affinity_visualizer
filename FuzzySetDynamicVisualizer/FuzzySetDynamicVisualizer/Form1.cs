@@ -120,10 +120,5 @@ namespace FuzzySetDynamicVisualizer
         {
             this.vizPanel.recenterObjects();
         }
-
-        private void onRecursionDepthChange(object sender, EventArgs e)
-        {
-            this.vizPanel.changeRecursionDepth((int) heatmapRecursionDepth.Value);
-        }
     }
 }
