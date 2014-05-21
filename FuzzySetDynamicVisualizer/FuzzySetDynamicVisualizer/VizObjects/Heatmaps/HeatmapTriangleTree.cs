@@ -18,58 +18,29 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         private HeatmapTriangleObject data = null;
         private HeatmapTriangleTree parentNode = null;
         private Point[] points;
+        private Point middlePoint = new Point(0, 0);
         private List<HeatmapTriangleTree> childrenNodes = new List<HeatmapTriangleTree>();
+        private int numMaxMembers = 0;
 
         public HeatmapTriangleTree(HeatmapTriangleObject starterData, HeatmapTriangleTree parent, Point[] starterPoints)
         {
             this.data = starterData;
-            this.points = starterPoints;
+            this.points = starterPoints;            
             this.parentNode = parent;
-        }
 
-#region recursive functions
-
-        //standard recursion
-        public List<HeatmapTriangleObject> splitToDepth(int currentDepth, int maxDepth)
-        {
-            List<HeatmapTriangleObject> returnList = new List<HeatmapTriangleObject>();
-            //we are the leaf node, return our data?
-            if (currentDepth < maxDepth)
+            //now we find the middle point of the points
+            int x = 0, y = 0;
+            for (int i = 0; i < points.Length; i++)
             {
-                List<HeatmapTriangleObject> subTriangles = this.data.getSubTriangles();
-
-                foreach (HeatmapTriangleObject triangle in subTriangles)
-                {
-                    this.childrenNodes.Add(new HeatmapTriangleTree(triangle, this, triangle.getPoints()));
-                }
-
-                returnList.AddRange(this.splitToDepth(currentDepth +1, maxDepth));                
-            } else {
-                returnList.Add(this.data);
+                x += points[i].X;
+                y += points[i].Y;
             }
-            return returnList;
+            x = (int)((float)x / (float)points.Length);
+            y = (int)((float)y / (float)points.Length);
+
+            middlePoint.X = x;
+            middlePoint.Y = y;
         }
-
-        public List<HeatmapTriangleTree> getLeaves()
-        {
-            if (this.isLeaf())
-            {
-                return childrenNodes;
-            }
-            else
-            {
-                List<HeatmapTriangleTree> returnNodes = new List<HeatmapTriangleTree>();
-
-                foreach (HeatmapTriangleTree child in childrenNodes)
-                {
-                    returnNodes.AddRange(child.getLeaves());
-                }
-
-                return returnNodes;
-            }
-        }
-
-#endregion 
 
         #region direct children editors
 
@@ -119,9 +90,34 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
         #region getters and setters
 
+        public List<HeatmapTriangleObject> getTriangles()
+        {
+            List<HeatmapTriangleObject> returnList = new List<HeatmapTriangleObject>();
+
+            if (this.isLeaf())
+            {
+                returnList.Add(data);
+                return returnList;
+            }
+            else
+            {
+                foreach (HeatmapTriangleTree child in childrenNodes)
+                {
+                    returnList.AddRange(child.getTriangles());
+                }
+
+                return returnList;
+            }
+        }
+
         public HeatmapTriangleObject getData()
         {
             return data;
+        }
+
+        internal List<HeatmapTriangleTree> getChildren()
+        {
+            return childrenNodes;
         }
 
         public bool isLeaf()
@@ -133,6 +129,95 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         {
             return parentNode == null ? true : false;
         }
+        
+        internal int getDepth()
+        {
+            if(this.isLeaf()){
+                return 1;
+            } else {
+                return 1 + childrenNodes[0].getDepth();  //we can do this because we know the tree is evenly balanced
+            }
+        }
+
+        internal void setNumMaxMembers(int newMax)
+        {
+            this.numMaxMembers = newMax;           
+        }
+               
+        internal List<HeatmapTriangleTree> getLeaves()
+        {
+            return this.getLeavesAtDepth(this.getDepth());
+        }
+
+
+        internal List<HeatmapTriangleTree> getLeavesAtDepth(int maxDepth)
+        {
+            if(maxDepth > this.getDepth()) //want deeper than we have
+                return new List<HeatmapTriangleTree>();
+            else 
+                return this.getLeavesAtDepth(1, maxDepth); //we use 1 for the current depth because a tree of one node returns 1 from getDepth()
+        }
+
+        private List<HeatmapTriangleTree> getLeavesAtDepth(int currentDepth, int maxDepth)
+        {
+            List<HeatmapTriangleTree> returnList = new List<HeatmapTriangleTree>();
+            if (currentDepth == maxDepth)
+            {                
+                returnList.Add(this);
+            }
+            else {
+                foreach (HeatmapTriangleTree child in childrenNodes)
+                {
+                    returnList.AddRange(child.getLeavesAtDepth(currentDepth + 1, maxDepth));
+                }
+            }
+            return returnList;
+        }      
+
+        internal void setLeafMaxMembers(int newNumMaxMembers)
+        {
+            if (this.isLeaf())
+            {
+                this.setNumMaxMembers(newNumMaxMembers);
+                this.data.setNumMaxMembers(newNumMaxMembers);
+            }
+            else
+            {
+                foreach (HeatmapTriangleTree child in childrenNodes)
+                {
+                    child.setLeafMaxMembers(newNumMaxMembers);
+                }
+            }
+
+        }
+
+        internal void move(int newX, int newY)
+        {
+            int xDiff = middlePoint.X - newX;
+            int yDiff = middlePoint.Y - newY;
+            this.moveByDiff(xDiff, yDiff);
+        }
+
+        internal void moveByDiff(int xDiff, int yDiff)
+        {
+            for(int i = 0; i < points.Length; i++)
+            {
+                points[i].X += xDiff;
+                points[i].Y += yDiff;
+            }
+            if (this.isLeaf())
+            {
+                this.data.moveByDiff(xDiff, yDiff);
+            }
+            else
+            {
+                foreach (HeatmapTriangleTree child in childrenNodes)
+                {
+                    child.moveByDiff(xDiff, yDiff);
+                }
+            }
+        }
+
         #endregion
     }
 }

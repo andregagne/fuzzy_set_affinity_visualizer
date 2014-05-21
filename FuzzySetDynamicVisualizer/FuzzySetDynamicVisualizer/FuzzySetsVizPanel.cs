@@ -261,6 +261,9 @@ namespace FuzzySetDynamicVisualizer
             this.Invalidate();
         }
 
+
+        #region heatmaps
+
         public void useHeatmap(bool useHeatmap)
         {
             this.heatmapSwitch = useHeatmap;
@@ -273,6 +276,8 @@ namespace FuzzySetDynamicVisualizer
             }
             this.Invalidate();
         }
+
+        #endregion
 
         //Need to recenter the objects based upon the current zoom and available space.
         internal void recenterObjects()
@@ -306,6 +311,21 @@ namespace FuzzySetDynamicVisualizer
                 vObj.moveByDiff(xDiff, yDiff);
             }
             this.Invalidate();
+        }
+
+        internal void heatmapValueChanged(int newRecursionDepth)
+        {
+            bool hasChanged = false;
+            foreach(VizObject vizObj in VizObjects){
+                if (vizObj is SetGroupObject)
+                {
+                    hasChanged = ((SetGroupObject)vizObj).setHeatmapRecursionDepth(newRecursionDepth);
+                }
+            }
+            if (hasChanged)
+            {
+                this.Invalidate();
+            }
         }
     }
 }

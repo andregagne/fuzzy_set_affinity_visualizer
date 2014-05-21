@@ -39,6 +39,8 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.heatmapRecursionSpinner = new System.Windows.Forms.NumericUpDown();
+            this.label5 = new System.Windows.Forms.Label();
             this.centerButton = new System.Windows.Forms.Button();
             this.heatmapCheckbox = new System.Windows.Forms.CheckBox();
             this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
@@ -53,6 +55,7 @@
             this.menuStrip1.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.panel2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.heatmapRecursionSpinner)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.memberRadiusSpinner)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.memberAlphaSpinner)).BeginInit();
@@ -148,6 +151,8 @@
             // 
             this.panel2.AutoSize = true;
             this.panel2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.panel2.Controls.Add(this.heatmapRecursionSpinner);
+            this.panel2.Controls.Add(this.label5);
             this.panel2.Controls.Add(this.centerButton);
             this.panel2.Controls.Add(this.heatmapCheckbox);
             this.panel2.Controls.Add(this.numericUpDown1);
@@ -163,6 +168,38 @@
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(94, 492);
             this.panel2.TabIndex = 1;
+            // 
+            // heatmapRecursionSpinner
+            // 
+            this.heatmapRecursionSpinner.Location = new System.Drawing.Point(7, 319);
+            this.heatmapRecursionSpinner.Maximum = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
+            this.heatmapRecursionSpinner.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.heatmapRecursionSpinner.Name = "heatmapRecursionSpinner";
+            this.heatmapRecursionSpinner.Size = new System.Drawing.Size(75, 20);
+            this.heatmapRecursionSpinner.TabIndex = 12;
+            this.heatmapRecursionSpinner.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.heatmapRecursionSpinner.ValueChanged += new System.EventHandler(this.heatmapValueChanged);
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(4, 303);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(87, 13);
+            this.label5.TabIndex = 11;
+            this.label5.Text = "Recursion Depth";
             // 
             // centerButton
             // 
@@ -327,6 +364,7 @@
             this.tableLayoutPanel1.PerformLayout();
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.heatmapRecursionSpinner)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.memberRadiusSpinner)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.memberAlphaSpinner)).EndInit();
@@ -359,6 +397,8 @@
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem gettingStartedToolStripMenuItem;
         private System.Windows.Forms.Button centerButton;
+        private System.Windows.Forms.NumericUpDown heatmapRecursionSpinner;
+        private System.Windows.Forms.Label label5;
     }
 }
 

@@ -113,6 +113,11 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             return numMaxMembers;
         }
 
+        public void setNumMaxMembers(int newNumMaxMembers)
+        {
+            this.numMaxMembers = newNumMaxMembers;
+        }
+
         public List<HeatmapTriangleObject> getSubTriangles()
         {
             List<HeatmapTriangleObject> subTriangles = new List<HeatmapTriangleObject>();
@@ -180,7 +185,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             float v = (dot11 * dot23 - dot12 * dot13) * denomenator;
 
             // u and v will only be positive if the point is between them on the smallest side, will only sum to 1 if it is within the triangles
-            isInside = (u >= 0) && (v >= 0) && (u + v < 1);
+            isInside = (u >= 0) && (v >= 0) && (u + v <= 1);
             return isInside;
         }
 

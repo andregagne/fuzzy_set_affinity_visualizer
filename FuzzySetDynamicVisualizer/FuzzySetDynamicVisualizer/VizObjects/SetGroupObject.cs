@@ -11,12 +11,11 @@ namespace FuzzySetDynamicVisualizer.VizObjects
     public class SetGroupObject : VizObject
     {
         private List<SetObject> setObjects = new List<SetObject>();
-        private List<HeatmapTriangleObject> heatmapObjects = new List<HeatmapTriangleObject>();
         private Dictionary<Set, SetObject> setStructures = new Dictionary<Set, SetObject>();
-        
-        //        private List<HeatmapObj> heatmapObjs = new List<HeatmapObj>();
-        private int heatmapRecursionDepth = 1;  //this should never go below 1        
 
+        //variables for heatmaps
+        private List<HeatmapTriangleTree> heatmapObjects = new List<HeatmapTriangleTree>();
+        private int heatmapRecursionDepth = 1;         
         private bool useHeatmap = false;
 
         public SetGroupObject()
@@ -58,9 +57,9 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
             if (useHeatmap)
             {
-                foreach (HeatmapTriangleObject triangle in heatmapObjects)
+                foreach (HeatmapTriangleTree triangleTree in heatmapObjects)
                 {
-                    triangle.visualize(graphics);
+                    this.visualizeHeatmapTriangle(graphics, triangleTree);
                 }
             }
 
@@ -84,6 +83,24 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             graphics.DrawPolygon(linePen, points.ToArray());
         }
 
+        /*
+         * visualizeHeatmapTriangle
+         * Because we are containing the objects in the tree we can do it recursively
+         */
+        private void visualizeHeatmapTriangle(Graphics graphics, HeatmapTriangleTree tree)
+        {
+            if (tree.isLeaf())
+            {
+                tree.getData().visualize(graphics);
+            }
+            else
+            {
+                foreach (HeatmapTriangleTree child in tree.getChildren())
+                {
+                    this.visualizeHeatmapTriangle(graphics, child);
+                }
+            }
+        }
         
         #endregion
 
@@ -109,8 +126,8 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             }
             if (useHeatmap)
             {
-                foreach (HeatmapTriangleObject triangle in heatmapObjects)
-                    triangle.move(newX, newY);
+                foreach (HeatmapTriangleTree tree in heatmapObjects)
+                    tree.move(newX, newY);
             }
         }
 
@@ -122,7 +139,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 set.moveByDiff(xDiff, yDiff);
             if (useHeatmap)
             {
-                foreach (HeatmapTriangleObject triangle in heatmapObjects)
+                foreach (HeatmapTriangleTree triangle in heatmapObjects)
                     triangle.moveByDiff(xDiff, yDiff);
             }
         }
@@ -238,7 +255,23 @@ namespace FuzzySetDynamicVisualizer.VizObjects
          * 
          * There are several ways to setup the heatmap.  
          * What I'm going to do is break up each triangle into 4 sub triangles and then use the graphical location for each to bin the members.
-         * Not the prettiest method, but it will work and may be faster than calculating N dimensional barycentric coordinates.
+         * Not the prettiest method, but it will work in a vast majority of situations and may be faster than calculating N dimensional barycentric coordinates.
+         * 
+         * Ok, so what I need to have here are a few methods:
+         * 
+         * setupHeatmap
+         * sets up the different tree structures that will contain the triangles needed for visualization and populate them with the appropriate triangle objects
+         * 
+         * adjustToDepth (int depth)
+         * This will force the tree structure to the appropriate depth.  There are several things that need to be taken into account
+         *  1) splitting
+         *      if the current depth is shallower than the desired then we need to split down to it.
+         *  2) collapsing
+         *      if the current depth is deeper than desired we will need collapse it back up, this will require grabbing all of the member objects from 
+         *      the triangles below the desired depth and adding them to a triangle that is higher up.
+         *  3) maximum members within a given layer of the tree
+         *      for any given level of the tree, the heatmap visualization requires that you distribute the maximum value across all of the triangles.  
+         *      We can save time when collapsing by saving those maximums, but that requires not using a recursive function to split them.
          * 
          */
         private void setupHeatmap()
@@ -247,6 +280,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
             List<MemberObject> members = new List<MemberObject>();
             List<Point> setLocations = new List<Point>();
+            List<HeatmapTriangleObject> vizTriangles = new List<HeatmapTriangleObject>();
 
             //initial setup we'll always have to do
             //pull what we want from the sets
@@ -256,20 +290,23 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 setLocations.Add(set.getLocation());
             }
 
+
+            //I know this can be done more concisely but I feel this is cleaner
+
             //adding the initial heatmap triangles
             for (int i = 0; i < setLocations.Count; i++)
             {
                 if (i != setLocations.Count - 1)
-                    this.heatmapObjects.Add(new HeatmapTriangleObject(members.Count, new Point[] { this.getLocation(), setLocations[i], setLocations[i+1] }));
+                    vizTriangles.Add(new HeatmapTriangleObject(members.Count, new Point[] { this.getLocation(), setLocations[i], setLocations[i+1] }));
                 else
-                    this.heatmapObjects.Add(new HeatmapTriangleObject(members.Count, new Point[] { this.getLocation(), setLocations[i], setLocations[0] }));
+                    vizTriangles.Add(new HeatmapTriangleObject(members.Count, new Point[] { this.getLocation(), setLocations[i], setLocations[0] }));
 
             }
 
             foreach (MemberObject member in members)
             {
                 bool isAdded = false;
-                foreach (HeatmapTriangleObject triangle in heatmapObjects)
+                foreach (HeatmapTriangleObject triangle in vizTriangles)
                 {
                     if (triangle.isPointInside(member.getLocation()))
                     {
@@ -282,38 +319,88 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                     Console.Out.WriteLine("Member wasn't added to a triangle " + member.getLocation().X + ", " + member.getLocation().Y);
             }
 
-            
-            if (heatmapRecursionDepth > 0)
+
+            foreach (HeatmapTriangleObject triangle in vizTriangles)
             {
-                List<HeatmapTriangleObject> subTriangles = new List<HeatmapTriangleObject>();
-                foreach (HeatmapTriangleObject triangle in heatmapObjects)
+                heatmapObjects.Add(new HeatmapTriangleTree(triangle, null, triangle.getPoints()));
+            }
+
+            //now we find the global maximum number of members and distribute it out
+            int newNumMaxMembers = 0;
+            foreach (HeatmapTriangleObject triangle in vizTriangles)
+            {
+                if (newNumMaxMembers < triangle.getMembers().Count)
+                    newNumMaxMembers = triangle.getMembers().Count;
+            }
+            foreach (HeatmapTriangleTree triangle in heatmapObjects)
+            {
+                triangle.setLeafMaxMembers(newNumMaxMembers);
+            }
+
+            //and now we split the trees
+            this.doHeatmapRecursion(heatmapRecursionDepth);
+        }
+        
+
+        /*
+         *
+         * splitToDepth
+         * Will not use standard recursion (despite wanting to) as we can save computation by doing each level of tree at a time.
+         * 
+         * We will need to first determine the depth of the triangles.
+         * 
+         * We'll use a list to keept track of the triangles we should be working on.  Because everything is symetric we should be able to use the 
+         * first item in each list instead of checking each one.
+         * 
+         */
+        private void doHeatmapRecursion(int maxDepth)
+        {
+            if (heatmapObjects[0].getDepth() != maxDepth)
+            {
+                if (heatmapObjects[0].getDepth() > maxDepth) // The tree is deeper than we want, collapse it
                 {
-                    subTriangles.AddRange(getSubTriangles(1, triangle));
+                    while (heatmapObjects[0].getDepth() > maxDepth)
+                    {
+                        foreach (HeatmapTriangleTree tree in heatmapObjects)
+                        {
+                            foreach (HeatmapTriangleTree leaf in tree.getLeavesAtDepth(tree.getDepth() - 1))
+                            {
+                                leaf.collapseChildren();
+                            }
+                        }
+                    }
                 }
-                heatmapObjects = subTriangles;
+                else  // the heart of the splitting
+                {
+                    while (heatmapObjects[0].getDepth() < maxDepth)
+                    {
+                        List<HeatmapTriangleObject> newLeaves = new List<HeatmapTriangleObject>();
+                        foreach (HeatmapTriangleTree tree in heatmapObjects)
+                        {
+                            foreach (HeatmapTriangleTree leaf in tree.getLeaves())  //split and get the subtraingles.
+                            {
+                                newLeaves.AddRange(leaf.splitChildren());
+                            }
+                        }
+
+                        //now we find the global maximum number of members and distribute it out
+                        int newNumMaxMembers = 0;
+                        foreach (HeatmapTriangleObject triangle in newLeaves)
+                        {
+                            if (newNumMaxMembers < triangle.getMembers().Count)
+                                newNumMaxMembers = triangle.getMembers().Count;
+                        }
+                        foreach (HeatmapTriangleTree triangle in heatmapObjects)
+                        {
+                            triangle.setLeafMaxMembers(newNumMaxMembers);
+                        }
+                    }
+
+                    return;
+                }
             }
         }
-
-        private List<HeatmapTriangleObject> getSubTriangles(int currentDepth, HeatmapTriangleObject currentTriangle)
-        {
-            List<HeatmapTriangleObject> returnTriangles = new List<HeatmapTriangleObject>();
-
-            returnTriangles = currentTriangle.getSubTriangles();
-
-            if (currentDepth == heatmapRecursionDepth)
-            {
-                return returnTriangles;
-            } else
-            {
-                List<HeatmapTriangleObject> returnSubTriangles = new List<HeatmapTriangleObject>();
-                foreach (HeatmapTriangleObject triangle in returnTriangles)
-                {
-                    returnSubTriangles.AddRange(getSubTriangles(currentDepth + 1, triangle));
-                }
-                return returnSubTriangles;
-            }            
-        }
-
+      
         #endregion
 
         #region overrides
@@ -362,6 +449,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         }
         #endregion
 
+        #region getters and setters
         internal void setMemberRadius(int newRadius)
         {
             foreach (SetObject setObj in setObjects)
@@ -401,5 +489,23 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         {
             return setObjects;
         }
+
+        internal bool setHeatmapRecursionDepth(int newRecursionDepth)
+        {
+            this.heatmapRecursionDepth = newRecursionDepth;
+            if (useHeatmap)
+            {
+                if (heatmapObjects.Count > 0) //we have heatmap objects
+                {
+                    if (newRecursionDepth > 0)
+                    {
+                        this.doHeatmapRecursion(newRecursionDepth);
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        #endregion
     }
 }
