@@ -125,5 +125,10 @@ namespace FuzzySetDynamicVisualizer
         {
             this.vizPanel.heatmapValueChanged((int) heatmapRecursionSpinner.Value);
         }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }

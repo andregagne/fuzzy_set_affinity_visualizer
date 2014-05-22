@@ -28,6 +28,19 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             this.points = points;
             this.numMaxMembers = maxMemberNum;
             this.members = new List<MemberObject>();
+
+            //now we find the middle point of the points
+            int x = 0, y = 0;
+            for (int i = 0; i < points.Length; i++)
+            {
+                x += points[i].X;
+                y += points[i].Y;
+            }
+            x = (int)((float)x / (float)points.Length);
+            y = (int)((float)y / (float)points.Length);
+
+            location.X = x;
+            location.Y = y;
         }
 
         public HeatmapTriangleObject(List<MemberObject> members, int maxMemberNum, Point[] points) : base()
@@ -35,6 +48,19 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             this.points = points;
             this.members = members;
             this.numMaxMembers = maxMemberNum;
+
+            //now we find the middle point of the points
+            int x = 0, y = 0;
+            for (int i = 0; i < points.Length; i++)
+            {
+                x += points[i].X;
+                y += points[i].Y;
+            }
+            x = (int)((float)x / (float)points.Length);
+            y = (int)((float)y / (float)points.Length);
+
+            location.X = x;
+            location.Y = y;
         }
 
         public HeatmapTriangleObject(List<MemberObject> members, int maxMemberNum, Point point1, Point point2, Point point3) : base()
@@ -44,6 +70,19 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             this.points[0] = point1;
             this.points[1] = point2;
             this.points[2] = point3;
+
+            //now we find the middle point of the points
+            int x = 0, y = 0;
+            for (int i = 0; i < points.Length; i++)
+            {
+                x += points[i].X;
+                y += points[i].Y;
+            }
+            x = (int)((float)x / (float)points.Length);
+            y = (int)((float)y / (float)points.Length);
+
+            location.X = x;
+            location.Y = y;
         }
 
         public override void visualize(Graphics graphics)
@@ -59,27 +98,18 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
         public void move(int newX, int newY)
         {
-            this.location.X = newX;
-            this.location.Y = newY;
-            foreach (MemberObject member in members)
-            {
-                member.move(newX, newY);
-            }
+            moveByDiff(newX - location.X, newY - location.Y);            
         }
 
         public override void moveByDiff(int xDiff, int yDiff)
-        {
+        {            
             for (int i = 0; i < points.Length; i++)
-            {
+            {                
                 points[i].X += xDiff;
-                points[i].Y += yDiff;
+                points[i].Y += yDiff;                
             }
-
-            //housekeeping
-            foreach (MemberObject member in members)
-            {
-                member.moveByDiff(xDiff, yDiff);
-            }
+            this.location.X += xDiff;
+            this.location.Y += yDiff;
         }
 
         private Color determineColor()

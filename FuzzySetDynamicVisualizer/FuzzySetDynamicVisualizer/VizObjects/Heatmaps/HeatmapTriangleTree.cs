@@ -193,18 +193,16 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
         internal void move(int newX, int newY)
         {
-            int xDiff = middlePoint.X - newX;
-            int yDiff = middlePoint.Y - newY;
+            int xDiff = newX - middlePoint.X;
+            int yDiff = newY - middlePoint.Y;
             this.moveByDiff(xDiff, yDiff);
         }
 
         internal void moveByDiff(int xDiff, int yDiff)
-        {
-            for(int i = 0; i < points.Length; i++)
-            {
-                points[i].X += xDiff;
-                points[i].Y += yDiff;
-            }
+        {            
+            middlePoint.X += xDiff;
+            middlePoint.Y += yDiff;
+
             if (this.isLeaf())
             {
                 this.data.moveByDiff(xDiff, yDiff);

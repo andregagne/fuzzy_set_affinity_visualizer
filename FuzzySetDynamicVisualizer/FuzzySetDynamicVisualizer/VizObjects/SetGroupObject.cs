@@ -55,7 +55,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             //draw the circle for this set group
             graphics.FillEllipse(new SolidBrush(colour), this.location.X - this.radius, this.location.Y - this.radius, radius * 2, radius * 2);
 
-            if (useHeatmap)
+            if (useHeatmap && setObjects.Count >= 3) //don't want to have triangles on a straight line
             {
                 foreach (HeatmapTriangleTree triangleTree in heatmapObjects)
                 {
@@ -71,7 +71,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 else
                     setObj.drawCore(graphics, true);
 
-                if (!useHeatmap)
+                if (!useHeatmap | setObjects.Count < 3)
                 {
                     foreach (MemberObject mObj in setObj.getMemberObjs())
                         mObj.visualize(graphics);
@@ -118,17 +118,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             int xDiff = newX - this.location.X;
             int yDiff = newY - this.location.Y;
 
-            this.location.X = newX;
-            this.location.Y = newY;
-            foreach (SetObject set in setObjects)
-            {
-                set.move(set.getLocation().X + xDiff, set.getLocation().Y + yDiff);
-            }
-            if (useHeatmap)
-            {
-                foreach (HeatmapTriangleTree tree in heatmapObjects)
-                    tree.move(newX, newY);
-            }
+            this.moveByDiff(xDiff, yDiff);
         }
 
         public override void moveByDiff(int xDiff, int yDiff)
@@ -215,7 +205,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
             setupOverdraw();
 
-            if (useHeatmap)
+            if (useHeatmap && setObjects.Count >= 3)
             {
                 setupHeatmap();
             }
