@@ -170,6 +170,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             subTriangles.Add(new HeatmapTriangleObject(numMaxMembers, new Point[] { points[2], medialPoint2, medialPoint3 }));
             subTriangles.Add(new HeatmapTriangleObject(numMaxMembers, new Point[] { medialPoint1, medialPoint2, medialPoint3 }));
 
+            int numFailures = 0;
 
             foreach (MemberObject member in members)
             {
@@ -182,8 +183,11 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 else if (subTriangles[3].isPointInside(member.getLocation()))
                     subTriangles[3].addMember(member);
                 else
-                    Console.Out.WriteLine("Member wasn't added to a triangle " + member.getLocation().X + ", " + member.getLocation().Y);
+                    numFailures++;
             }
+
+            if(numFailures > 0)
+                Console.Out.WriteLine(numFailures + " of points were not added");
 
             return subTriangles;
 
