@@ -202,6 +202,12 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         {            
             middlePoint.X += xDiff;
             middlePoint.Y += yDiff;
+            //why are we doing this?  because the data has completely separate references to points so we need to keep it up to date
+            for (int i = 0; i < points.Length; i++)
+            {
+                points[i].X += xDiff;
+                points[i].Y += yDiff;
+            }
 
             if (this.isLeaf())
             {

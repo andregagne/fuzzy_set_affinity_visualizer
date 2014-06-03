@@ -56,7 +56,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             }
 
             foreach (MemberObject m in members)
-                m.visualize(graphics);
+                m.visualize(graphics, this.location);
         }
 
         public void drawCore(Graphics graph, bool textOnRight)
@@ -115,13 +115,8 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         //and now the guts
         public void move(int newX, int newY)
         {
-            int xDiff = newX - this.location.X;
-            int yDiff = newY - this.location.Y;
-
             this.location.X = newX;
             this.location.Y = newY;
-            foreach (MemberObject m in members)
-                m.move(m.getLocation().X + xDiff, m.getLocation().Y + yDiff);
         }
 
         //and now so it doesn't snap the middle to the cursor
@@ -129,8 +124,6 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         {
             this.location.X = this.location.X + xDiff;
             this.location.Y = this.location.Y + yDiff;
-            foreach (MemberObject m in members)
-                m.move(m.getLocation().X + xDiff, m.getLocation().Y + yDiff);
         }
 
         public void arrange()
@@ -150,10 +143,12 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             double memberRadius = membershipRate * (double)radius;
             double angle = randGenerator.NextDouble() * (2D * Math.PI);
 
-            int newX = (int)((double)memberRadius * Math.Sin(angle));
-            int newY = (int)((double)memberRadius * Math.Cos(angle));
+            int xOffset = (int)((double)memberRadius * Math.Sin(angle));
+            int yOffset = (int)((double)memberRadius * Math.Cos(angle));
 
-            memObj.move(location.X + newX, location.Y + newY);
+            memObj.move(0, 0);
+            memObj.move(xOffset, yOffset);
+            
         }
 
         internal void setMemberRadius(int newRadius)

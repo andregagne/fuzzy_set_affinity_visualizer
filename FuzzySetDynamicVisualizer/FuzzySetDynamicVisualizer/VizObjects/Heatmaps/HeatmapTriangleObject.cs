@@ -45,7 +45,10 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
         public HeatmapTriangleObject(List<MemberObject> members, int maxMemberNum, Point[] points) : base()
         {
-            this.points = points;
+            //because pass by reference and we don't want to screw up so much fun stuff!
+            for( int i = 0; i < points.Length; i++)
+                this.points[i] = new Point(points[i].X, points[i].Y);
+
             this.members = members;
             this.numMaxMembers = maxMemberNum;
 
@@ -67,9 +70,10 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         {
             this.members = members;
             this.numMaxMembers = maxMemberNum;
-            this.points[0] = point1;
-            this.points[1] = point2;
-            this.points[2] = point3;
+            //why are we instantiating new points?  because pass by reference!
+            this.points[0] = new Point(point1.X, point1.Y);
+            this.points[1] = new Point(point2.X, point2.Y);
+            this.points[2] = new Point(point3.X, point3.Y);
 
             //now we find the middle point of the points
             int x = 0, y = 0;
@@ -89,6 +93,16 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         {
             SolidBrush brush = new SolidBrush(determineColor());
             graphics.FillPolygon(brush, points);
+        }
+
+        public void visualize(Graphics graphics, Point parentPoint)
+        {
+            Point[] realPoints = new Point[3];
+            realPoints[0] = new Point(parentPoint.X + points[0].X, parentPoint.Y + points[0].Y);
+            realPoints[1] = new Point(parentPoint.X + points[1].X, parentPoint.Y + points[1].Y);
+            realPoints[2] = new Point(parentPoint.X + points[2].X, parentPoint.Y + points[2].Y);
+            SolidBrush brush = new SolidBrush(determineColor());
+            graphics.FillPolygon(brush, realPoints);
         }
 
         public override void move(Point newPoint)

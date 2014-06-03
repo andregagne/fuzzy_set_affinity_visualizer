@@ -74,7 +74,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 if (!useHeatmap | setObjects.Count < 3)
                 {
                     foreach (MemberObject mObj in setObj.getMemberObjs())
-                        mObj.visualize(graphics);
+                        mObj.visualize(graphics, this.location);
                 }                
 
                 points.Add(setObj.getLocation());
@@ -91,7 +91,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         {
             if (tree.isLeaf())
             {
-                tree.getData().visualize(graphics);
+                tree.getData().visualize(graphics, this.location);
             }
             else
             {
@@ -126,12 +126,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             this.location.X = this.location.X + xDiff;
             this.location.Y = this.location.Y + yDiff;
             foreach (SetObject set in setObjects)
-                set.moveByDiff(xDiff, yDiff);
-            if (useHeatmap)
-            {
-                foreach (HeatmapTriangleTree triangle in heatmapObjects)
-                    triangle.moveByDiff(xDiff, yDiff);
-            }
+                set.moveByDiff(xDiff, yDiff);            
         }
         #endregion
 
@@ -220,8 +215,8 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             {
                 foreach (MemberObject mObj in setObj.getMemberObjs())
                 {
-                    int memberX = this.location.X;
-                    int memberY = this.location.Y;
+                    int memberX = 0;
+                    int memberY = 0;
                     Member tempMember = mObj.getMember();
 
                     foreach (SetObject setStuff in setObjects)
@@ -232,7 +227,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                         memberX += xDiff;
                         memberY += yDiff;
                     }
-                    mObj.move(memberX, memberY);
+                    mObj.setOffset(memberX, memberY);                    
                 }
             }
         }
@@ -277,7 +272,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             foreach (SetObject set in setObjects)
             {
                 members.AddRange(set.getMemberObjs());
-                setLocations.Add(set.getLocation());
+                setLocations.Add(new Point(set.getLocation().X - this.location.X, set.getLocation().Y - this.location.Y));
             }
 
 
@@ -287,12 +282,14 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             for (int i = 0; i < setLocations.Count; i++)
             {
                 if (i != setLocations.Count - 1)
-                    vizTriangles.Add(new HeatmapTriangleObject(members.Count, new Point[] { this.getLocation(), setLocations[i], setLocations[i+1] }));
+                    vizTriangles.Add(new HeatmapTriangleObject(members.Count, new Point[] { new Point(0,0), setLocations[i], setLocations[i+1] }));
                 else
-                    vizTriangles.Add(new HeatmapTriangleObject(members.Count, new Point[] { this.getLocation(), setLocations[i], setLocations[0] }));
+                    vizTriangles.Add(new HeatmapTriangleObject(members.Count, new Point[] { new Point(0,0), setLocations[i], setLocations[0] }));
 
             }
 
+            //initial sorting of members
+            int numNotAdded = 0;
             foreach (MemberObject member in members)
             {
                 bool isAdded = false;
@@ -306,9 +303,11 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                     }
                 }
                 if (!isAdded)
-                    Console.Out.WriteLine("Member wasn't added to a triangle " + member.getLocation().X + ", " + member.getLocation().Y);
+                    numNotAdded++;
             }
 
+            if(numNotAdded > 0)
+                Console.Out.WriteLine(numNotAdded + " members weren't added");
 
             foreach (HeatmapTriangleObject triangle in vizTriangles)
             {

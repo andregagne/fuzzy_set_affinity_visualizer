@@ -8,7 +8,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 {
     public abstract class VizObject : Object
     {
-        protected Point location;  //this is the drawing point but not the actual center of the object
+        protected Point location;  
         protected Color colour;
         public static int MINRADIUS = 2;
         protected int radius;  //is the radius

@@ -42,6 +42,15 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             graphics.FillEllipse(thisBrush, this.location.X - radius, this.location.Y - radius, radius * 2, radius * 2);            
         }
 
+        //this acknowledges that the member object is a special object that will always be a part of another visual object
+        // as a result we never need to keep it updated.
+        public void visualize(Graphics graphics, Point parentPoint)
+        {
+            graphics.FillEllipse(thisBrush, parentPoint.X + this.location.X - radius, parentPoint.Y + this.location.Y - radius, radius * 2, radius * 2);            
+        }
+
+        //
+
         public override string ToString()
         {
             return member.getLabel();
@@ -64,12 +73,24 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             this.location.Y = this.location.Y + yDiff;
         }
 
+        //This is special in that it sets the offset from the parent, not the actual X and Y location of the visualization object.
+        public void setOffset(int xOffset, int yOffset)
+        {
+            this.location.X = xOffset;
+            this.location.Y = yOffset;
+        }
+
         internal void setAlpha(int newAlpha)
         {
             this.colour = Color.FromArgb(newAlpha, colour.R, colour.G, colour.B);
             alpha = newAlpha;
             this.thisBrush = new SolidBrush(colour);
             this.thisPen = new Pen(colour);
+        }
+
+        internal Point getOffset()
+        {
+            return this.location;
         }
     }
 }
