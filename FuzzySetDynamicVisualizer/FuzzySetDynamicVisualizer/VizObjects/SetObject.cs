@@ -60,6 +60,8 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 this.addMemberObject(new MemberObject(m, Color.Black));
         }
 
+        #region visualizations
+
         public override void visualize(Graphics graphics)
         {
             Brush tempBrush = new SolidBrush(Color.FromArgb(alpha, Color.Green));
@@ -88,6 +90,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             float percentStep = (int)(100.0f / Math.Pow(2.0d, (double)heatmapRecursionDepth - 1.0d));
             float percent = 0;
 
+            //instantiating these once for simplicity's sake
             SolidBrush brush = new SolidBrush(determineColor(heatmapBins[0]));
             Pen pen = new Pen(brush, percentStep);
             float tempX = 0, tempY = 0;
@@ -97,17 +100,15 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             for (int i = 0; i < heatmapBins.Length - 1; i++)
             {
                 percent += percentStep;
-                brush.Color = determineColor(heatmapBins[i]);
-                pen = new Pen(brush, percentStep);
+                brush.Color = determineColor(heatmapBins[i]);  //I want a custom alpha color based upon the intensity of items in the bin
+                pen = new Pen(brush, percentStep);  //and now we need a new pen because apparently pens don't update well
                 currentRadius = (int)(((float)radius * (percent / 100.0f)) - percentStep/ 2.0f) + 1;
                 tempX = location.X - currentRadius;
                 tempY = location.Y - currentRadius;
-                graphics.DrawEllipse(pen, tempX, tempY, currentRadius * 2, currentRadius * 2);
-
-                
+                graphics.DrawEllipse(pen, tempX, tempY, currentRadius * 2, currentRadius * 2);                
             }
 
-            //now we do the last bit
+            //now we do the last chunk of percentages, we need to do it this way in case the step is kind of odd (want to make sure we capture the 100%ers)
             int index = heatmapBins.Length - 1;
             float percentRemainder = 100.0f - percent;
 
@@ -128,7 +129,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             if(textOnRight)
                 graph.DrawString(setLabel, thisFont, thisBrush, new Point((int)(this.location.X + smallRadius * 2), this.location.Y));
             else
-                graph.DrawString(setLabel, thisFont, thisBrush, new Point((int)(this.location.X - graph.MeasureString(setLabel, thisFont).Width - smallRadius), this.location.Y));
+                graph.DrawString(setLabel, thisFont, thisBrush, new Point((int)(this.location.X - graph.MeasureString(setLabel, thisFont).Width - smallRadius), (this.location.Y + radius)));
         }
 
         private Color determineColor(int currentAmount)
@@ -141,7 +142,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
             return Color.FromArgb(alpha, Color.Black);
         }
-
+        #endregion
 
         public bool isCoreHit(int newX, int newY)
         {
@@ -296,7 +297,9 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             //interesting, this is where we actually end up doing more work than the triangle/recursive method
             foreach (MemberObject member in members)
             {
-                int memberIndex = (int) Math.Ceiling((double) (member.getMember().getMembershipAsPercent(this.getSet())) / percentStep) - 1;
+                int memberIndex = (int) Math.Floor((double) (100 - member.getMember().getMembershipAsPercent(this.getSet())) / percentStep);
+                if (memberIndex == heatmapBins.Length)  // only happens in the case where the membership is 0
+                    memberIndex--;
                 heatmapBins[memberIndex]++;
             }
 
