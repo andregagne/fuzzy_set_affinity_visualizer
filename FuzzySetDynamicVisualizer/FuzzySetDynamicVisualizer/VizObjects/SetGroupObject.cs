@@ -17,6 +17,9 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         private List<HeatmapTriangleTree> heatmapObjects = new List<HeatmapTriangleTree>();
         private int heatmapRecursionDepth = 1;         
         private bool useHeatmap = false;
+        private int globalMaxAmount = 1;
+        private int[] heatmapBins;
+        private static float LINE_HEATMAP_WIDTH = 10.0f;
 
         public SetGroupObject()
         {
@@ -100,6 +103,51 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                     this.visualizeHeatmapTriangle(graphics, child);
                 }
             }
+        }
+
+        private void visualizeLineHeatmap(Graphics graphics)
+        {
+            float percentStep = (int)(100.0f / Math.Pow(2.0d, (double)heatmapRecursionDepth - 1.0d));
+            float percent = 0;
+
+            //instantiating these once for simplicity's sake
+            SolidBrush brush = new SolidBrush(determineColor(heatmapBins[0]));
+            Pen pen = new Pen(brush, percentStep);
+            float tempX = (float) location.X - (LINE_HEATMAP_WIDTH / 2.0f), 
+                  tempY = 0;
+            int currentRadius = 0;
+
+            //need to do all but the last one
+            for (int i = 0; i < heatmapBins.Length - 1; i++)
+            {
+                percent += percentStep;
+                brush.Color = determineColor(heatmapBins[i]);  //I want a custom alpha color based upon the intensity of items in the bin
+                pen = new Pen(brush, percentStep);  //and now we need a new pen because apparently pens don't update well
+                currentRadius = (int)(((float)radius * (percent / 100.0f)) - percentStep / 2.0f) + 1;                
+                tempY = location.Y - currentRadius;
+                graphics.DrawEllipse(pen, tempX, tempY, LINE_HEATMAP_WIDTH, currentRadius * 2);
+            }
+
+            //now we do the last chunk of percentages, we need to do it this way in case the step is kind of odd (want to make sure we capture the 100%ers)
+            int index = heatmapBins.Length - 1;
+            float percentRemainder = 100.0f - percent;
+
+            brush.Color = determineColor(heatmapBins[heatmapBins.Length - 1]);
+            pen = new Pen(brush, percentStep);
+            currentRadius = radius - (int)(percentRemainder / 2.0f) + 1;
+            tempY = location.Y - currentRadius;
+            graphics.DrawEllipse(pen, tempX, tempY, currentRadius * 2, currentRadius * 2);
+        }
+
+        private Color determineColor(int currentAmount)
+        {
+            //this is for straight gradiant alphas
+            int alpha = (int)((float)currentAmount / (float)globalMaxAmount * 255);
+
+            //this is for a logarithmic scale
+            //int alpha = (int)(Math.Log((double)members.Count, (double)maxMemberNum) * 255);
+
+            return Color.FromArgb(alpha, Color.Black);
         }
         
         #endregion
@@ -200,10 +248,11 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
             setupOverdraw();
 
-            if (useHeatmap && setObjects.Count >= 3)
-            {
-                setupHeatmap();
-            }
+            if (useHeatmap)
+                if (setObjects.Count == 2)
+                    setupLineHeatmap();
+                else   //setObjects will always have 2 or more objects
+                    setupTriangleHeatmap();
 
         }
 
@@ -234,7 +283,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
         #endregion
 
-        #region Heatmaps!
+        #region Triangle Heatmaps!
 
         /*
          * 
@@ -259,7 +308,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
          *      We can save time when collapsing by saving those maximums, but that requires not using a recursive function to split them.
          * 
          */
-        private void setupHeatmap()
+        private void setupTriangleHeatmap()
         {
             heatmapObjects.Clear();
 
@@ -391,6 +440,53 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         }
       
         #endregion
+
+        #region 1D Heatmaps
+
+        //this will only occur if we have two sets, as a result we can base the entire thing off of one of them and just setup the line accordingly
+        private void setupLineHeatmap()
+        {
+            //setup the size of the bins
+            double numBins = Math.Pow(2.0d, (double)heatmapRecursionDepth - 1.0d);
+
+            heatmapBins = new int[(int)numBins];
+
+            //remember to initialize!
+            for (int i = 0; i < (int)numBins; i++)
+            {
+                heatmapBins[i] = 0;
+            }
+
+            double percentStep = (100.0d / numBins);
+
+            //interesting, this is where we actually end up doing more work than the triangle/recursive method
+            List<MemberObject> members = new List<MemberObject>();
+
+            foreach(SetObject set in setObjects)
+                members.AddRange(set.getMemberObjs());
+            
+            foreach (MemberObject member in members)
+            {
+                //the reason why this is 100 - membership percent is because we want the most affiliated items closest to the first set
+                //we will base the visualization off of the first set
+                int memberIndex = (int)Math.Floor((double)(100 - member.getMember().getMembershipAsPercent(this.setObjects[0].getSet())) / percentStep);
+                if (memberIndex == heatmapBins.Length)  // only happens in the case where the membership is 0
+                    memberIndex--;
+                heatmapBins[memberIndex]++;
+            }
+
+            int newNumMaxMembers = 0;
+            for (int i = 0; i < (int)numBins; i++)
+            {
+                if (newNumMaxMembers < heatmapBins[i])
+                    newNumMaxMembers = heatmapBins[i];
+            }
+
+            this.globalMaxAmount = newNumMaxMembers;
+        }
+
+
+        #endregion 
 
         #region overrides
         public override void setIsHitBySelected(bool isHit)
