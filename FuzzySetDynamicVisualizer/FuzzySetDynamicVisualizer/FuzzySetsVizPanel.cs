@@ -273,6 +273,10 @@ namespace FuzzySetDynamicVisualizer
                 {
                     ((SetGroupObject)vObj).setUseHeatmap(useHeatmap);
                 }
+                else if (vObj is SetObject)
+                {
+                    ((SetObject)vObj).setHeatmaps(useHeatmap);
+                }
             }
             this.Invalidate();
         }
@@ -315,14 +319,20 @@ namespace FuzzySetDynamicVisualizer
 
         internal void heatmapValueChanged(int newRecursionDepth)
         {
-            bool hasChanged = false;
+            int hasChanged = 0;
             foreach(VizObject vizObj in VizObjects){
                 if (vizObj is SetGroupObject)
                 {
-                    hasChanged = ((SetGroupObject)vizObj).setHeatmapRecursionDepth(newRecursionDepth);
+                    if (((SetGroupObject)vizObj).setHeatmapRecursionDepth(newRecursionDepth))
+                        hasChanged++;
+                }
+                else if (vizObj is SetObject)
+                {
+                    if (((SetObject)vizObj).setHeatmapRecursionDepth(newRecursionDepth))
+                        hasChanged++;
                 }
             }
-            if (hasChanged)
+            if (hasChanged > 0)
             {
                 this.Invalidate();
             }

@@ -17,6 +17,12 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         private Font thisFont;
         private float coreScale = 0.05f;
 
+        //for Heatmaps       
+        private bool useHeatmaps = false;
+        private int heatmapRecursionDepth = 1;
+        private int globalMaxAmount = 1;
+        private int[] heatmapBins;
+
         public SetObject(Set set, Color color)
         {
             this.set = set;
@@ -32,6 +38,20 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         {
             this.set = set;
             this.colour = color;
+            thisBrush = new SolidBrush(color);
+            thisPen = new Pen(colour);
+            this.thisFont = new Font("Arial", 8);
+                        
+            foreach (Member m in set.getMembers())
+                this.addMemberObject(new MemberObject(m, Color.Black));
+        }
+
+        public SetObject(Set set, Color color, int screenWidth, int screenHeight, int heatmapRecursionDepth)
+            : base(screenWidth, screenHeight, 0.2f)
+        {
+            this.set = set;
+            this.colour = color;
+            this.heatmapRecursionDepth = heatmapRecursionDepth;
             thisBrush = new SolidBrush(color);
             thisPen = new Pen(colour);
             this.thisFont = new Font("Arial", 8);
@@ -55,8 +75,48 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 graphics.DrawEllipse(outterPen, tempX, tempY, radius * 2, radius * 2);
             }
 
-            foreach (MemberObject m in members)
-                m.visualize(graphics, this.location);
+            if(useHeatmaps){
+                this.visualizeHeatmap(graphics);
+            } else {
+                foreach (MemberObject m in members)
+                    m.visualize(graphics, this.location);
+            }
+        }
+
+        private void visualizeHeatmap(Graphics graphics)
+        {
+            float percentStep = (int)(100.0f / Math.Pow(2.0d, (double)heatmapRecursionDepth - 1.0d));
+            float percent = 0;
+
+            SolidBrush brush = new SolidBrush(determineColor(heatmapBins[0]));
+            Pen pen = new Pen(brush, percentStep);
+            float tempX = 0, tempY = 0;
+            int currentRadius = 0;
+
+            //need to do all but the last one
+            for (int i = 0; i < heatmapBins.Length - 1; i++)
+            {
+                percent += percentStep;
+                brush.Color = determineColor(heatmapBins[i]);
+                pen = new Pen(brush, percentStep);
+                currentRadius = (int)(((float)radius * (percent / 100.0f)) - percentStep/ 2.0f) + 1;
+                tempX = location.X - currentRadius;
+                tempY = location.Y - currentRadius;
+                graphics.DrawEllipse(pen, tempX, tempY, currentRadius * 2, currentRadius * 2);
+
+                
+            }
+
+            //now we do the last bit
+            int index = heatmapBins.Length - 1;
+            float percentRemainder = 100.0f - percent;
+
+            brush.Color = determineColor(heatmapBins[heatmapBins.Length - 1]);
+            pen = new Pen(brush, percentStep);
+            currentRadius = radius - (int) (percentRemainder / 2.0f) + 1;
+            tempX = location.X - currentRadius;
+            tempY = location.Y - currentRadius;
+            graphics.DrawEllipse(pen, tempX, tempY, currentRadius * 2, currentRadius * 2);
         }
 
         public void drawCore(Graphics graph, bool textOnRight)
@@ -71,6 +131,18 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 graph.DrawString(setLabel, thisFont, thisBrush, new Point((int)(this.location.X - graph.MeasureString(setLabel, thisFont).Width - smallRadius), this.location.Y));
         }
 
+        private Color determineColor(int currentAmount)
+        {
+            //this is for straight gradiant alphas
+            int alpha = (int)((float)currentAmount / (float)globalMaxAmount * 255);
+
+            //this is for a logarithmic scale
+            //int alpha = (int)(Math.Log((double)members.Count, (double)maxMemberNum) * 255);
+
+            return Color.FromArgb(alpha, Color.Black);
+        }
+
+
         public bool isCoreHit(int newX, int newY)
         {
             double xDifference = newX - location.X;
@@ -82,6 +154,59 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
             return false;
         }
+
+        public void arrange()
+        {
+            foreach(MemberObject memObj in members)
+                arrangeMember(memObj);
+
+            if (useHeatmaps)
+                this.setupHeatmaps();
+        }
+
+        /*
+         * arranges the members in the set.  
+         * 
+         * The angel around the center is random but the 
+        */
+        private void arrangeMember(MemberObject memObj)
+        {
+            double membershipRate = ((double)memObj.getMember().getMembershipAsPercent(set) / 100D);
+            double memberRadius = membershipRate * (double)radius;
+            double angle = randGenerator.NextDouble() * (2D * Math.PI);
+
+            int xOffset = (int)((double)memberRadius * Math.Sin(angle));
+            int yOffset = (int)((double)memberRadius * Math.Cos(angle));
+
+            memObj.move(0, 0);
+            memObj.move(xOffset, yOffset);
+            
+        }
+
+        #region moves
+        //moves
+        // start with the most visible
+        public override void move(Point newPoint)
+        {
+            this.move(newPoint.X, newPoint.Y);
+        }
+
+        //and now the guts
+        public void move(int newX, int newY)
+        {
+            this.location.X = newX;
+            this.location.Y = newY;
+        }
+
+        //and now so it doesn't snap the middle to the cursor
+        public override void moveByDiff(int xDiff, int yDiff)
+        {
+            this.location.X = this.location.X + xDiff;
+            this.location.Y = this.location.Y + yDiff;
+        }
+        #endregion
+
+        #region basic getters and setters
 
         public Set getSet()
         {
@@ -103,52 +228,6 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             this.members.Add(newObj);
 
             arrangeMember(newObj);
-        }
-
-        //moves
-        // start with the most visible
-        public override void move(Point newPoint)
-        {
-            this.move(newPoint.X, newPoint.Y);
-        }
-
-        //and now the guts
-        public void move(int newX, int newY)
-        {
-            this.location.X = newX;
-            this.location.Y = newY;
-        }
-
-        //and now so it doesn't snap the middle to the cursor
-        public override void moveByDiff(int xDiff, int yDiff)
-        {
-            this.location.X = this.location.X + xDiff;
-            this.location.Y = this.location.Y + yDiff;
-        }
-
-        public void arrange()
-        {
-            foreach(MemberObject memObj in members)
-                arrangeMember(memObj);
-        }
-
-        /*
-         * arranges the members in the set.  
-         * 
-         * The angel around the center is random but the 
-        */
-        private void arrangeMember(MemberObject memObj)
-        {
-            double membershipRate = ((double)memObj.getMember().getMembershipAsPercent(set) / 100D);
-            double memberRadius = membershipRate * (double)radius;
-            double angle = randGenerator.NextDouble() * (2D * Math.PI);
-
-            int xOffset = (int)((double)memberRadius * Math.Sin(angle));
-            int yOffset = (int)((double)memberRadius * Math.Cos(angle));
-
-            memObj.move(0, 0);
-            memObj.move(xOffset, yOffset);
-            
         }
 
         internal void setMemberRadius(int newRadius)
@@ -181,6 +260,69 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             }
         }
 
+        public void setHeatmaps(bool useHeatmaps)
+        {
+            this.useHeatmaps = useHeatmaps;
 
+            if (useHeatmaps)
+                this.setupHeatmaps();            
+        }
+
+        #endregion
+
+        #region heatmapstuff
+
+        /**
+         * 
+         * We're going to try setting up the heatmaps using a non-recursive method.  why? 
+         * Because I can and I want the practice, that's why :P
+         * 
+         */
+        private void setupHeatmaps()
+        {
+            //setup the size of the bins
+            double numBins = Math.Pow(2.0d, (double)heatmapRecursionDepth - 1.0d);
+
+            heatmapBins = new int[(int)numBins];
+
+            //remember to initialize!
+            for (int i = 0; i < (int)numBins; i++)
+            {
+                heatmapBins[i] = 0;
+            }
+
+            double percentStep = (100.0d / numBins);                                             
+
+            //interesting, this is where we actually end up doing more work than the triangle/recursive method
+            foreach (MemberObject member in members)
+            {
+                int memberIndex = (int) Math.Ceiling((double) (member.getMember().getMembershipAsPercent(this.getSet())) / percentStep) - 1;
+                heatmapBins[memberIndex]++;
+            }
+
+            int newNumMaxMembers = 0;
+            for (int i = 0; i < (int) numBins; i++ )
+            {
+                if (newNumMaxMembers < heatmapBins[i])
+                    newNumMaxMembers = heatmapBins[i];
+            }
+
+            this.globalMaxAmount = newNumMaxMembers;
+        }
+
+        internal bool setHeatmapRecursionDepth(int newRecursionDepth)
+        {
+            //quick and dirty to make sure it works.
+            this.heatmapRecursionDepth = newRecursionDepth;
+            if (useHeatmaps)
+            {
+                this.setupHeatmaps();
+            }
+
+            return true;
+        }
+
+        #endregion
+        
     }
 }
