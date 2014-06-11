@@ -19,7 +19,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         private bool useHeatmap = false;
         private int globalMaxAmount = 1;
         private int[] heatmapBins;
-        private static float LINE_HEATMAP_WIDTH = 10.0f;
+        private static float LINE_HEATMAP_WIDTH = 50.0f;
 
         public SetGroupObject()
         {
@@ -58,13 +58,16 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             //draw the circle for this set group
             graphics.FillEllipse(new SolidBrush(colour), this.location.X - this.radius, this.location.Y - this.radius, radius * 2, radius * 2);
 
-            if (useHeatmap && setObjects.Count >= 3) //don't want to have triangles on a straight line
-            {
-                foreach (HeatmapTriangleTree triangleTree in heatmapObjects)
+            if (useHeatmap)
+                if(setObjects.Count == 2)
+                    this.visualizeLineHeatmap(graphics);
+                else  // we know there are 3 or more so we'll use the triangle visualization system
                 {
-                    this.visualizeHeatmapTriangle(graphics, triangleTree);
+                    foreach (HeatmapTriangleTree triangleTree in heatmapObjects)
+                    {
+                        this.visualizeHeatmapTriangle(graphics, triangleTree);
+                    }
                 }
-            }
 
             foreach (SetObject setObj in setObjects)
             {
@@ -74,7 +77,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 else
                     setObj.drawCore(graphics, true);
 
-                if (!useHeatmap | setObjects.Count < 3)
+                if (!useHeatmap)
                 {
                     foreach (MemberObject mObj in setObj.getMemberObjs())
                         mObj.visualize(graphics, this.location);
@@ -106,37 +109,27 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         }
 
         private void visualizeLineHeatmap(Graphics graphics)
-        {
-            float percentStep = (int)(100.0f / Math.Pow(2.0d, (double)heatmapRecursionDepth - 1.0d));
-            float percent = 0;
-
+        {          
             //instantiating these once for simplicity's sake
-            SolidBrush brush = new SolidBrush(determineColor(heatmapBins[0]));
-            Pen pen = new Pen(brush, percentStep);
-            float tempX = (float) location.X - (LINE_HEATMAP_WIDTH / 2.0f), 
-                  tempY = 0;
-            int currentRadius = 0;
 
+            float tempX = (float)location.X - (LINE_HEATMAP_WIDTH / 2.0f),
+                  tempY = (float)setObjects[0].getLocation().Y;  // we draw from the first set to the second.                  
+            float step = (int)(tempY - (float) setObjects[1].getLocation().Y  / Math.Pow(2.0d, (double)heatmapRecursionDepth - 1.0d));
+            SolidBrush brush = new SolidBrush(determineColor(heatmapBins[0]));            
+            
             //need to do all but the last one
             for (int i = 0; i < heatmapBins.Length - 1; i++)
-            {
-                percent += percentStep;
-                brush.Color = determineColor(heatmapBins[i]);  //I want a custom alpha color based upon the intensity of items in the bin
-                pen = new Pen(brush, percentStep);  //and now we need a new pen because apparently pens don't update well
-                currentRadius = (int)(((float)radius * (percent / 100.0f)) - percentStep / 2.0f) + 1;                
-                tempY = location.Y - currentRadius;
-                graphics.DrawEllipse(pen, tempX, tempY, LINE_HEATMAP_WIDTH, currentRadius * 2);
+            {            
+                brush.Color = determineColor(heatmapBins[i]);  //I want a custom alpha color based upon the intensity of items in the bin                
+                graphics.FillRectangle(brush, tempX, tempY, LINE_HEATMAP_WIDTH, step);
+                tempY += step;
             }
 
             //now we do the last chunk of percentages, we need to do it this way in case the step is kind of odd (want to make sure we capture the 100%ers)
             int index = heatmapBins.Length - 1;
-            float percentRemainder = 100.0f - percent;
-
-            brush.Color = determineColor(heatmapBins[heatmapBins.Length - 1]);
-            pen = new Pen(brush, percentStep);
-            currentRadius = radius - (int)(percentRemainder / 2.0f) + 1;
-            tempY = location.Y - currentRadius;
-            graphics.DrawEllipse(pen, tempX, tempY, currentRadius * 2, currentRadius * 2);
+            float yRemainder = (float) (setObjects[1].getLocation().Y) - tempY;
+            brush.Color = determineColor(heatmapBins[heatmapBins.Length - 1]);            
+            graphics.FillRectangle(brush, tempX, tempY, LINE_HEATMAP_WIDTH, yRemainder);
         }
 
         private Color determineColor(int currentAmount)
@@ -234,7 +227,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 numMembers += setObj.getMemberObjs().Count;
             }
 
-            double startAngle = (2D * Math.PI) / (double)this.setObjects.Count;
+            double angleStep = (2D * Math.PI) / (double)this.setObjects.Count;
             double angle = 0;
 
             foreach (SetObject setObj in setObjects)
@@ -243,7 +236,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 int newY = (int)((double)radius * Math.Cos(angle));
 
                 setObj.move(this.getLocation().X + newX, this.getLocation().Y + newY);
-                angle += startAngle;
+                angle += angleStep;
             }
 
             setupOverdraw();
