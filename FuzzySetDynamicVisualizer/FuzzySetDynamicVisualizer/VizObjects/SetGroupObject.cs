@@ -12,6 +12,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
     {
         private List<SetObject> setObjects = new List<SetObject>();
         private Dictionary<Set, SetObject> setStructures = new Dictionary<Set, SetObject>();
+        private Color colour;
 
         //variables for heatmaps
         private List<HeatmapTriangleTree> heatmapObjects = new List<HeatmapTriangleTree>();
@@ -19,7 +20,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         private bool useHeatmap = false;
         private int globalMaxAmount = 1;
         private int[] heatmapBins;
-        private static float LINE_HEATMAP_WIDTH = 50.0f;
+        private static float LINE_HEATMAP_WIDTH = 20.0f;
 
         public SetGroupObject()
         {
@@ -111,10 +112,9 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         private void visualizeLineHeatmap(Graphics graphics)
         {          
             //instantiating these once for simplicity's sake
-
             float tempX = (float)location.X - (LINE_HEATMAP_WIDTH / 2.0f),
-                  tempY = (float)setObjects[0].getLocation().Y;  // we draw from the first set to the second.                  
-            float step = (int)(tempY - (float) setObjects[1].getLocation().Y  / Math.Pow(2.0d, (double)heatmapRecursionDepth - 1.0d));
+                  tempY = (float)setObjects[1].getLocation().Y;  // we draw from the first set to the second.                  
+            float step = (int)(((float) setObjects[0].getLocation().Y - tempY)  / Math.Pow(2.0d, (double)heatmapRecursionDepth - 1.0d));
             SolidBrush brush = new SolidBrush(determineColor(heatmapBins[0]));            
             
             //need to do all but the last one
@@ -127,7 +127,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
             //now we do the last chunk of percentages, we need to do it this way in case the step is kind of odd (want to make sure we capture the 100%ers)
             int index = heatmapBins.Length - 1;
-            float yRemainder = (float) (setObjects[1].getLocation().Y) - tempY;
+            float yRemainder = (float) (setObjects[0].getLocation().Y) - tempY;
             brush.Color = determineColor(heatmapBins[heatmapBins.Length - 1]);            
             graphics.FillRectangle(brush, tempX, tempY, LINE_HEATMAP_WIDTH, yRemainder);
         }
@@ -462,7 +462,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             {
                 //the reason why this is 100 - membership percent is because we want the most affiliated items closest to the first set
                 //we will base the visualization off of the first set
-                int memberIndex = (int)Math.Floor((double)(100 - member.getMember().getMembershipAsPercent(this.setObjects[0].getSet())) / percentStep);
+                int memberIndex = (int)Math.Floor((double)(100 - member.getMember().getMembershipAsPercent(this.setObjects[1].getSet())) / percentStep);
                 if (memberIndex == heatmapBins.Length)  // only happens in the case where the membership is 0
                     memberIndex--;
                 heatmapBins[memberIndex]++;
@@ -573,12 +573,17 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             this.heatmapRecursionDepth = newRecursionDepth;
             if (useHeatmap)
             {
-                if (heatmapObjects.Count > 0) //we have heatmap objects
+                if (setObjects.Count == 2)
                 {
-                    if (newRecursionDepth > 0)
+                    this.setupLineHeatmap();
+                } else{
+                    if (heatmapObjects.Count > 0) //we have heatmap objects
                     {
-                        this.doHeatmapRecursion(newRecursionDepth);
-                        return true;
+                        if (newRecursionDepth > 0)
+                        {
+                            this.doHeatmapRecursion(newRecursionDepth);
+                            return true;
+                        }
                     }
                 }
             }

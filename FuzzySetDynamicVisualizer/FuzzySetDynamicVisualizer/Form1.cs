@@ -60,8 +60,11 @@ namespace FuzzySetDynamicVisualizer
 
                 foreach (Set s in sets)
                 {
-                    vizObj.Add(new SetObject(s, Color.Blue, vizPanel.Width, vizPanel.Height, (int) this.heatmapRecursionSpinner.Value));
+                    vizObj.Add(new SetObject(s, Color.Blue, vizPanel.Width, vizPanel.Height, (int) this.heatmapRecursionSpinner.Value, this.heatmapCheckbox.Checked));
                 }
+
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
 
                 vizPanel.loadVizObjects(vizObj);
             }

@@ -26,9 +26,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         public SetObject(Set set, Color color)
         {
             this.set = set;
-            this.colour = color;
             thisBrush = new SolidBrush(color);
-            thisPen = new Pen(colour);
             this.radius = 10;
             this.thisFont = new Font("Arial", 8);
         }
@@ -37,27 +35,27 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             : base(screenWidth, screenHeight, 0.2f)
         {
             this.set = set;
-            this.colour = color;
             thisBrush = new SolidBrush(color);
-            thisPen = new Pen(colour);
             this.thisFont = new Font("Arial", 8);
                         
             foreach (Member m in set.getMembers())
                 this.addMemberObject(new MemberObject(m, Color.Black));
         }
 
-        public SetObject(Set set, Color color, int screenWidth, int screenHeight, int heatmapRecursionDepth)
+        public SetObject(Set set, Color color, int screenWidth, int screenHeight, int heatmapRecursionDepth, bool useHeatmap)
             : base(screenWidth, screenHeight, 0.2f)
         {
             this.set = set;
-            this.colour = color;
+            this.useHeatmaps = useHeatmap;
             this.heatmapRecursionDepth = heatmapRecursionDepth;
             thisBrush = new SolidBrush(color);
-            thisPen = new Pen(colour);
             this.thisFont = new Font("Arial", 8);
 
             foreach (Member m in set.getMembers())
                 this.addMemberObject(new MemberObject(m, Color.Black));
+
+            if (useHeatmaps)
+                this.arrange();
         }
 
         #region visualizations
@@ -297,7 +295,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             //interesting, this is where we actually end up doing more work than the triangle/recursive method
             foreach (MemberObject member in members)
             {
-                int memberIndex = (int) Math.Floor((double) (100 - member.getMember().getMembershipAsPercent(this.getSet())) / percentStep);
+                int memberIndex = (int) Math.Floor((double) (100 - member.getMember().getMembershipAsPercent(this.getSet())) / (double) percentStep);
                 if (memberIndex == heatmapBins.Length)  // only happens in the case where the membership is 0
                     memberIndex--;
                 heatmapBins[memberIndex]++;

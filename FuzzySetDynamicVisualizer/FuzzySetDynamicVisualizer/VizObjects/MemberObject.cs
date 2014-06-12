@@ -11,13 +11,13 @@ namespace FuzzySetDynamicVisualizer.VizObjects
     {
         private Member member;
         private static int alpha = 30;
+        private Color colour;
         private Brush thisBrush;
         
         public MemberObject(Member member, Color color) : base()
         {            
             this.member = member;
             this.colour = Color.FromArgb(alpha, color.R, color.G, color.B);
-            this.thisPen = new Pen(colour);
             thisBrush = new SolidBrush(colour);
 
             this.radius = 5;
@@ -27,7 +27,6 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         {
             this.member = member;
             this.colour = Color.FromArgb(alpha, color.R, color.G, color.B);
-            this.thisPen = new Pen(colour);
             thisBrush = new SolidBrush(colour);
         }
 
@@ -49,7 +48,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             graphics.FillEllipse(thisBrush, parentPoint.X + this.location.X - radius, parentPoint.Y + this.location.Y - radius, radius * 2, radius * 2);            
         }
 
-        //
+        
 
         public override string ToString()
         {
@@ -85,7 +84,6 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             this.colour = Color.FromArgb(newAlpha, colour.R, colour.G, colour.B);
             alpha = newAlpha;
             this.thisBrush = new SolidBrush(colour);
-            this.thisPen = new Pen(colour);
         }
 
         internal Point getOffset()

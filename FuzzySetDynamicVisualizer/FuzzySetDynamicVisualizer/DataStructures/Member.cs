@@ -44,7 +44,7 @@ namespace FuzzySetDynamicVisualizer.DataStructures
             int returnVal = 0;
             if (!setMembership.TryGetValue(set, out returnVal))
                 returnVal = 0;
-            else
+            else if(totalValue > 0)
                 returnVal = (int)((float)returnVal / (float)totalValue * 100.0f);
             return returnVal;
         }

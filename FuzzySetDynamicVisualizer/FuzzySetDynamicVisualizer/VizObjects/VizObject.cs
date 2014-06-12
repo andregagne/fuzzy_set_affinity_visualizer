@@ -9,10 +9,9 @@ namespace FuzzySetDynamicVisualizer.VizObjects
     public abstract class VizObject : Object
     {
         protected Point location;  
-        protected Color colour;
+        //protected Color colour;
         public static int MINRADIUS = 2;
         protected int radius;  //is the radius
-        protected Pen thisPen;
         protected bool hitBySelected = false;
         protected Random randGenerator = new Random();
         protected float scale = 1.0f;
@@ -21,8 +20,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         {
             this.location = new Point(0, 0);
             this.radius = MINRADIUS;
-            this.colour = Color.Black;
-            this.thisPen = new Pen(colour);
+            //this.colour = Color.Black;
         }
 
         public VizObject(int radius) : this()
