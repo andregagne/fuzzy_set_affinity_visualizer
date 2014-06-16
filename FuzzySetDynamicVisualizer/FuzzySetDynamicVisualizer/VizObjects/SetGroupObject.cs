@@ -39,9 +39,11 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             this.colour = Color.FromArgb(50, color);
         }
 
-        public SetGroupObject(List<SetObject> newSets, Color color, bool heatmapSwitch)
+        public SetGroupObject(List<SetObject> newSets, Color color, bool heatmapSwitch, int heatmapRecursionDepth)
         {
-            this.useHeatmap = heatmapSwitch; setObjects.AddRange(newSets);
+            this.useHeatmap = heatmapSwitch;
+            this.heatmapRecursionDepth = heatmapRecursionDepth;
+            setObjects.AddRange(newSets);
             this.location = this.calculateCenterPoint();
             this.radius = newSets[0].getRadius() * 2;
             foreach (SetObject setObj in newSets)
@@ -550,6 +552,8 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         public void setUseHeatmap(bool newUseHeatmap)
         {
             useHeatmap = newUseHeatmap;
+            foreach (SetObject set in setObjects)
+                set.setHeatmaps(newUseHeatmap);
             this.arrangeObjects();
         }
 

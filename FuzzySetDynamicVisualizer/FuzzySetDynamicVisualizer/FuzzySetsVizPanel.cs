@@ -18,6 +18,7 @@ namespace FuzzySetDynamicVisualizer
         private VizObject selected = null;
         private float scale = 1.0f;
         private bool heatmapSwitch = false;
+        private int heatmapRecursionDepth = 1;
 
         public FuzzySetsVizPanel(ToolStripStatusLabel label)
         {
@@ -196,7 +197,7 @@ namespace FuzzySetDynamicVisualizer
          */
         public void setupSetGroup(List<SetObject> sets)
         {
-            SetGroupObject newGroup = new SetGroupObject(sets, Color.Green, heatmapSwitch);
+            SetGroupObject newGroup = new SetGroupObject(sets, Color.Green, heatmapSwitch, heatmapRecursionDepth);
 
             foreach (SetObject set in sets)
             {
@@ -315,6 +316,7 @@ namespace FuzzySetDynamicVisualizer
 
         internal void heatmapValueChanged(int newRecursionDepth)
         {
+            heatmapRecursionDepth = newRecursionDepth;
             int hasChanged = 0;
             foreach(VizObject vizObj in VizObjects){
                 if (vizObj is SetGroupObject)
