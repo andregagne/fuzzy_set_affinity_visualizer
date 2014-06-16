@@ -86,7 +86,7 @@
             0});
             this.samplesSpinner.Location = new System.Drawing.Point(12, 103);
             this.samplesSpinner.Maximum = new decimal(new int[] {
-            1000000,
+            10000000,
             0,
             0,
             0});

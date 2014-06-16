@@ -13,19 +13,19 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         protected List<MemberObject> members;
         int maxPercent = 0, minPercent = 0;
         protected int numMaxMembers = 1; //needed to determine alpha/shading levels
-        private int setRadius = 1;
+        private int parentRadius = 1;
 
 
         public HeatmapCircleObject(int setRadius) : base()
         {
             this.members = new List<MemberObject>();
-            this.setRadius = setRadius;
+            this.parentRadius = setRadius;
         }
 
         public HeatmapCircleObject(int maxPercent, int minPercent, int setRadius) : base()
         {            
             this.members = new List<MemberObject>();
-            this.setRadius = setRadius;
+            this.parentRadius = setRadius;
             this.maxPercent = maxPercent;
             this.minPercent = minPercent;
            
@@ -34,16 +34,16 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         public override void visualize(Graphics graphics)
         {
             SolidBrush brush = new SolidBrush(determineColor());
-            float tempX = this.location.X - setRadius;
-            float tempY = this.location.Y - setRadius;
-            graphics.FillEllipse(brush, tempX, tempY, setRadius * 2, setRadius * 2);
+            float tempX = this.location.X - parentRadius;
+            float tempY = this.location.Y - parentRadius;
+            graphics.FillEllipse(brush, tempX, tempY, parentRadius * 2, parentRadius * 2);
         }
 
         public void visualize(Graphics graphics, Point parentPoint)
         {            
             SolidBrush brush = new SolidBrush(determineColor());
-            int maxRadius = (int)((float)setRadius * (100.0f / (float)this.maxPercent));
-            int minRadius = (int)((float)setRadius * (100.0f / (float)this.minPercent));
+            int maxRadius = (int)((float)parentRadius * (100.0f / (float)this.maxPercent));
+            int minRadius = (int)((float)parentRadius * (100.0f / (float)this.minPercent));
             float tempX = parentPoint.X - maxRadius;
             float tempY = parentPoint.Y - maxRadius;
             graphics.FillEllipse(brush, tempX, tempY, maxRadius * 2, maxRadius * 2);
