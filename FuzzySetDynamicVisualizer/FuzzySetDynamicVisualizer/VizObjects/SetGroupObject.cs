@@ -74,9 +74,9 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             {
                 //draws the center point for the sets
                 if (setObj.getLocation().X < location.X)
-                    setObj.drawCore(graphics, false);
+                    setObj.drawCore(graphics, false, false);
                 else
-                    setObj.drawCore(graphics, true);
+                    setObj.drawCore(graphics, true, false);
 
                 if (!useHeatmap)
                 {
@@ -570,24 +570,32 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
         internal bool setHeatmapRecursionDepth(int newRecursionDepth)
         {
+            bool setupHeatmaps = false;
             this.heatmapRecursionDepth = newRecursionDepth;
             if (useHeatmap)
             {
                 if (setObjects.Count == 2)
                 {
                     this.setupLineHeatmap();
+                    setupHeatmaps = true;
                 } else{
                     if (heatmapObjects.Count > 0) //we have heatmap objects
                     {
                         if (newRecursionDepth > 0)
                         {
                             this.doHeatmapRecursion(newRecursionDepth);
-                            return true;
+                            setupHeatmaps = true;
                         }
                     }
                 }
             }
-            return false;
+
+            foreach (SetObject set in setObjects)
+            {
+                set.setHeatmapRecursionDepth(newRecursionDepth);
+            }
+
+            return setupHeatmaps;
         }
         #endregion
     }

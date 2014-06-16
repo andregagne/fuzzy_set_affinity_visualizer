@@ -81,7 +81,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             float tempX = this.location.X - radius;
             float tempY = this.location.Y - radius;
             graphics.FillEllipse(tempBrush, tempX, tempY, radius * 2, radius * 2);
-            this.drawCore(graphics, true);
+            this.drawCore(graphics, true, true);
             
             if (hitBySelected)
             {
@@ -133,16 +133,25 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             graphics.DrawEllipse(pen, tempX, tempY, currentRadius * 2, currentRadius * 2);
         }
 
-        public void drawCore(Graphics graph, bool textOnRight)
+        public void drawCore(Graphics graph, bool textOnRight, bool textBelowRadius)
         {
             float smallRadius = ((float)radius * coreScale);
             string setLabel = this.getSet().getLabel();
 
             graph.FillEllipse(thisBrush, this.location.X - smallRadius, this.location.Y - smallRadius, smallRadius * 2.0f, smallRadius * 2.0f);
-            if(textOnRight)
-                graph.DrawString(setLabel, thisFont, thisBrush, new Point((int)(this.location.X + smallRadius * 2), this.location.Y));
+
+            //now we figure out where to put the label
+            int textXLocation, textYLocation = this.location.Y;
+
+            if (textOnRight)
+                textXLocation = (int)(this.location.X + smallRadius * 2);
             else
-                graph.DrawString(setLabel, thisFont, thisBrush, new Point((int)(this.location.X - graph.MeasureString(setLabel, thisFont).Width - smallRadius), (this.location.Y)));
+                textXLocation = (int)(this.location.X - graph.MeasureString(setLabel, thisFont).Width - smallRadius);
+
+            if (textBelowRadius)
+                textYLocation += radius;
+
+            graph.DrawString(setLabel, thisFont, thisBrush, new Point(textXLocation, textYLocation));
         }
 
         private Color determineColor(int currentAmount)
