@@ -11,11 +11,11 @@ namespace FuzzySetDynamicVisualizer.VizObjects
     public class SetObject : VizObject
     {
         private Set set;
-        private Brush thisBrush;
-        private int alpha = 50;
-        private List<MemberObject> members = new List<MemberObject>();
+        private Brush thisBrush;        
+        private int alpha = 50;        
         private Font thisFont;
         private float coreScale = 0.05f;
+        protected Random randGenerator = new Random();
 
         //for Heatmaps       
         private bool useHeatmaps = false;
@@ -23,12 +23,21 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         private int globalMaxAmount = 1;
         private int[] heatmapBins;
 
+        //memberStuff
+        private List<MemberObject> members = new List<MemberObject>();
+        private int memberAlpha = 30;
+        private Color memberColor;
+        private Brush memberBrush;
+
         public SetObject(Set set, Color color)
         {
             this.set = set;
             thisBrush = new SolidBrush(color);
             this.radius = 10;
             this.thisFont = new Font("Arial", 8);
+
+            this.memberColor = Color.FromArgb(alpha, Color.Black.R, Color.Black.G, Color.Black.B);
+            this.memberBrush = new SolidBrush(memberColor);
         }
 
         public SetObject(Set set, Color color, int screenWidth, int screenHeight)
@@ -37,9 +46,12 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             this.set = set;
             thisBrush = new SolidBrush(color);
             this.thisFont = new Font("Arial", 8);
+
+            this.memberColor = Color.FromArgb(memberAlpha, Color.Black.R, Color.Black.G, Color.Black.B);
+            this.memberBrush = new SolidBrush(memberColor);
                         
             foreach (Member m in set.getMembers())
-                this.addMemberObject(new MemberObject(m, Color.Black));
+                this.addMemberObject(new MemberObject(m));
         }
 
         public SetObject(Set set, Color color, int screenWidth, int screenHeight, int heatmapRecursionDepth, bool useHeatmap)
@@ -51,8 +63,11 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             thisBrush = new SolidBrush(color);
             this.thisFont = new Font("Arial", 8);
 
+            this.memberColor = Color.FromArgb(memberAlpha, Color.Black.R, Color.Black.G, Color.Black.B);
+            this.memberBrush = new SolidBrush(memberColor);
+
             foreach (Member m in set.getMembers())
-                this.addMemberObject(new MemberObject(m, Color.Black));
+                this.addMemberObject(new MemberObject(m));
 
             if (useHeatmaps)
                 this.arrange();
@@ -79,7 +94,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 this.visualizeHeatmap(graphics);
             } else {
                 foreach (MemberObject m in members)
-                    m.visualize(graphics, this.location);
+                    m.visualize(graphics, this.location, memberBrush);
             }
         }
 
@@ -127,7 +142,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             if(textOnRight)
                 graph.DrawString(setLabel, thisFont, thisBrush, new Point((int)(this.location.X + smallRadius * 2), this.location.Y));
             else
-                graph.DrawString(setLabel, thisFont, thisBrush, new Point((int)(this.location.X - graph.MeasureString(setLabel, thisFont).Width - smallRadius), (this.location.Y + radius)));
+                graph.DrawString(setLabel, thisFont, thisBrush, new Point((int)(this.location.X - graph.MeasureString(setLabel, thisFont).Width - smallRadius), (this.location.Y)));
         }
 
         private Color determineColor(int currentAmount)
@@ -253,10 +268,9 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
         internal void setMemberAlpha(int newAlpha)
         {
-            foreach (MemberObject memObj in members)
-            {
-                memObj.setAlpha(newAlpha);
-            }
+            this.memberColor = Color.FromArgb(newAlpha, memberColor.R, memberColor.G, memberColor.B);
+            this.memberAlpha = newAlpha;
+            this.memberBrush = new SolidBrush(memberColor);
         }
 
         public void setHeatmaps(bool useHeatmaps)
@@ -265,6 +279,11 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
             if (useHeatmaps)
                 this.setupHeatmaps();            
+        }
+
+        public Brush getMemberBrush()
+        {
+            return memberBrush;
         }
 
         #endregion

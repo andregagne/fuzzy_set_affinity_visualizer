@@ -12,7 +12,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
     {
         private List<SetObject> setObjects = new List<SetObject>();
         private Dictionary<Set, SetObject> setStructures = new Dictionary<Set, SetObject>();
-        private Color colour;
+        private Color colour;        
 
         //variables for heatmaps
         private List<HeatmapTriangleTree> heatmapObjects = new List<HeatmapTriangleTree>();
@@ -20,7 +20,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         private bool useHeatmap = false;
         private int globalMaxAmount = 1;
         private int[] heatmapBins;
-        private static float LINE_HEATMAP_WIDTH = 20.0f;
+        private static float LINE_HEATMAP_WIDTH = 20.0f;              
 
         public SetGroupObject()
         {
@@ -81,7 +81,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 if (!useHeatmap)
                 {
                     foreach (MemberObject mObj in setObj.getMemberObjs())
-                        mObj.visualize(graphics, this.location);
+                        mObj.visualize(graphics, this.location, setObj.getMemberBrush());
                 }                
 
                 points.Add(setObj.getLocation());

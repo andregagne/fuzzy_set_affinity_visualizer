@@ -245,11 +245,7 @@ namespace FuzzySetDynamicVisualizer
         {
             foreach (VizObject vizObj in VizObjects)
             {
-                if (vizObj is MemberObject)
-                {
-                    ((MemberObject)vizObj).setAlpha(newAlpha);
-                }
-                else if (vizObj is SetObject)
+                if (vizObj is SetObject)
                 {
                     ((SetObject)vizObj).setMemberAlpha(newAlpha);
                 }

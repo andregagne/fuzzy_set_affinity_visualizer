@@ -16,6 +16,7 @@ namespace FuzzySetDynamicVisualizer
     {
         FuzzySetsVizPanel vizPanel;
         static string titleText = "Fuzzy Set Affinity Visualizer";
+        char delimiter = '\t';
 
         public Form1()
         {
@@ -35,41 +36,101 @@ namespace FuzzySetDynamicVisualizer
 
         private void loadFile(string fileName)
         {
-            StreamReader file = new StreamReader(fileName);
-            if (vizPanel != null)
+            using (StreamReader file = new StreamReader(fileName))
             {
-                List<Member> memberList = new List<Member>();
-                List<Set> sets = getSets(file);
-
-                while (!file.EndOfStream)
+                if (vizPanel != null)
                 {
-                    Dictionary<Set, int> setMemberships = new Dictionary<Set, int>();
+                    List<Set> sets = getSets(file);  //reads and strips off the first line
+                    int membership = 0;
+                    int numMembers = 0;                    
+                    int[] setMemberships;
+                    
+                    //for line parsing
+                    String lineString;
+                    int stringStartIndex = 0;
+                    int tabIndex = 0;
+                    String memberName = null;
+                    int setIndex = 0;
+                    String membershipValue = null;
+                    
 
-                    string[] linePieces = file.ReadLine().Split(new char[] { '\t' });
-                    for (int i = 1; i < linePieces.Length; i++)
+                    while (!file.EndOfStream)
                     {
-                        int membership = 0;
-                        int.TryParse(linePieces[i], out membership);
-                        setMemberships.Add(sets[i - 1], membership);
+                        stringStartIndex = 0;
+                        setIndex = 0;                        
+                        setMemberships = new int[sets.Count];
+
+                                                
+                        lineString = file.ReadLine();                                            
+
+                        /*
+                         * in order to cut down on memory usage we're going to step through the string for the file line
+                         * manually looking for tabdeliniations
+                         */
+
+                        //grab the name first
+                        tabIndex = lineString.IndexOf(delimiter);
+                        memberName = lineString.Substring(0, tabIndex);
+                        stringStartIndex = tabIndex + 1;
+
+                        //now we go until we can't find anymore
+                        // TODO: make this harder to break with more error checking code
+                        while (stringStartIndex < lineString.Length)
+                        {                           
+                            membership = 0;
+                            
+                            //supposed to find the location of the next tab stop and parse the int within it.
+                            tabIndex = lineString.IndexOf(delimiter, stringStartIndex);
+                            if (tabIndex > 0 - 1) // this means there's still stuff at the end of the line without a tab at the end of it
+                            {
+                                membershipValue = lineString.Substring(stringStartIndex, tabIndex - stringStartIndex);
+                                stringStartIndex = tabIndex + 1;
+                            }
+                            else
+                            {
+                                membershipValue = lineString.Substring(stringStartIndex, lineString.Length - stringStartIndex);
+                                stringStartIndex = lineString.Length;
+                            }
+                            
+                            //and now we parse
+                            if (int.TryParse(membershipValue, out membership))
+                                //TODO: consider removing dictionaries entirely as they take up unneeded space
+                                setMemberships[setIndex] = membership;
+                            else
+                                System.Console.WriteLine("Could not parse " + membershipValue);                                
+
+                            
+                            setIndex++;
+                        }
+
+                        if(setIndex != sets.Count)
+                            System.Console.WriteLine("Something is off, the # of sets parsed was " + setIndex +", should have been " + sets.Count);
+
+                        new Member(memberName, sets, setMemberships);  //adds itself to the set that it has the highest affinity to
+                        numMembers++;
                     }
 
-                    memberList.Add(new Member(linePieces[0], setMemberships));
+
+                    List<VizObject> vizObj = new List<VizObject>();
+
+                    if (numMembers >= 100000)
+                    {
+                        this.heatmapCheckbox.Checked = true;
+                        vizPanel.useHeatmap(true);
+                    }
+                    
+                    foreach (Set s in sets)
+                    {
+                        vizObj.Add(new SetObject(s, Color.Blue, vizPanel.Width, vizPanel.Height, (int)this.heatmapRecursionSpinner.Value, this.heatmapCheckbox.Checked));
+                    }
+                    
+                    vizPanel.loadVizObjects(vizObj);
                 }
-
-                List<VizObject> vizObj = new List<VizObject>();
-
-                foreach (Set s in sets)
-                {
-                    vizObj.Add(new SetObject(s, Color.Blue, vizPanel.Width, vizPanel.Height, (int) this.heatmapRecursionSpinner.Value, this.heatmapCheckbox.Checked));
-                }
-
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-
-                vizPanel.loadVizObjects(vizObj);
+                vizPanel.Invalidate();
+                this.Text = titleText += fileName;
             }
-            vizPanel.Invalidate();
-            this.Text = titleText += fileName;
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
 
         private List<Set> getSets(StreamReader file)
@@ -77,7 +138,7 @@ namespace FuzzySetDynamicVisualizer
             List<Set> sets = new List<Set>();
 
             string fileLine = file.ReadLine();
-            string[] broken = fileLine.Split(new char[] { '\t' });
+            string[] broken = fileLine.Split(delimiter);
 
             for (int i = 1; i < broken.Length; i++)
             {

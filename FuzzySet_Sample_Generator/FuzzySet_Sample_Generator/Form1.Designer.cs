@@ -79,9 +79,14 @@
             // 
             // samplesSpinner
             // 
+            this.samplesSpinner.Increment = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
             this.samplesSpinner.Location = new System.Drawing.Point(12, 103);
             this.samplesSpinner.Maximum = new decimal(new int[] {
-            100000,
+            1000000,
             0,
             0,
             0});

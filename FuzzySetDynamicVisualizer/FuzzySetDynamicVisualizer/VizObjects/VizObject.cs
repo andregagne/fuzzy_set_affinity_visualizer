@@ -13,7 +13,6 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         public static int MINRADIUS = 2;
         protected int radius;  //is the radius
         protected bool hitBySelected = false;
-        protected Random randGenerator = new Random();
         protected float scale = 1.0f;
 
         public VizObject()

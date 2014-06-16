@@ -7,45 +7,47 @@ namespace FuzzySetDynamicVisualizer.DataStructures
 {
     public class Member
     {
-        private string label;
-        private Dictionary<Set, int> setMembership;
+        private string label;        
+        private List<Set> sets;
+        private int[] memberships;
         private int totalValue = 0;
 
-        public Member(string label, Dictionary<Set, int> membershipDictionary)
+        public Member(string label, List<Set> sets, int[] memberships)
         {
             this.label = label;
-            this.setMembership = membershipDictionary;
+            this.memberships = memberships;
+            this.sets = sets;
 
-            int maxValue = membershipDictionary.Values.Max();
-            Set maxSet = null;
+            int maxValue = 0;
+            int maxIndex = 0;
 
-            IEnumerator<Set> keys = membershipDictionary.Keys.GetEnumerator();
-
-            while (keys.MoveNext())
-            {
-                int membership = 0;
-                if (membershipDictionary.TryGetValue(keys.Current, out membership))
-                {
-                    totalValue += membership;  //the total value is so we can do the membership as a percent of all memberships
-                    if (membership == maxValue)
-                        maxSet = keys.Current;
+            for(int i = 0; i < memberships.Length; i++){
+                totalValue += memberships[i];
+                if(memberships[i] >= maxValue){
+                    maxValue = memberships[i];
+                    maxIndex = i;
                 }
             }
 
-            if (maxSet != null)
-                maxSet.addMember(this);
+            Set maxSet = sets[maxIndex];
+            maxSet.addMember(this);
         }
 
         /**
          * returns an int between 0 and 100
          */
-        public int getMembershipAsPercent(Set set)
+        public float getMembershipAsPercent(Set set)
         {
-            int returnVal = 0;
-            if (!setMembership.TryGetValue(set, out returnVal))
-                returnVal = 0;
-            else if(totalValue > 0)
-                returnVal = (int)((float)returnVal / (float)totalValue * 100.0f);
+            int setIndex = -1;
+            for (int i = 0; i < sets.Count; i++)
+            {
+                if (sets[i].Equals(set))
+                    setIndex = i;
+            }
+
+            float returnVal = 0;
+            if(setIndex >= 0)
+                returnVal = (float)memberships[setIndex] / (float)totalValue * 100.0f;
             return returnVal;
         }
 
