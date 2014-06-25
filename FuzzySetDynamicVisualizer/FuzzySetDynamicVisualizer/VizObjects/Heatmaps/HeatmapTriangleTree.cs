@@ -66,7 +66,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
             foreach (HeatmapTriangleTree childNode in childrenNodes)
             {
-                returnTriangle.addMembers(childNode.getData().getMembers());
+                returnTriangle.members.AddRange(childNode.getData().members);
             }
 
             childrenNodes.Clear();

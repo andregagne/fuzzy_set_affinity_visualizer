@@ -8,27 +8,12 @@ namespace FuzzySetDynamicVisualizer.DataStructures
 {
     public class Set
     {
-        private string label;
-        private ArrayList members = new ArrayList();
+        public readonly string label;
+        public readonly List<Member> members = new List<Member>();
 
         public Set(string label)
         {
             this.label = label;
-        }
-
-        public string getLabel()
-        {
-            return label;
-        }
-
-        public void addMember(Member newMember)
-        {
-            members.Add(newMember);
-        }
-
-        public ArrayList getMembers()
-        {
-            return members;
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -12,13 +13,13 @@ using FuzzySetDynamicVisualizer.VizObjects;
 
 namespace FuzzySetDynamicVisualizer
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
-        FuzzySetsVizPanel vizPanel;
-        static string titleText = "Fuzzy Set Affinity Visualizer";
-        char delimiter = '\t';
+        private readonly FuzzySetsVizPanel vizPanel;
+        private static string titleText = "Fuzzy Set Affinity Visualizer";
+        private const char delimiter = '\t';
 
-        public Form1()
+        public MainForm()
         {
             InitializeComponent();
             vizPanel = new FuzzySetsVizPanel(this.statusLabel);
@@ -36,12 +37,11 @@ namespace FuzzySetDynamicVisualizer
 
         private void loadFile(string fileName)
         {
+            Debug.Assert(vizPanel != null);
             using (StreamReader file = new StreamReader(fileName))
             {
-                if (vizPanel != null)
                 {
                     List<Set> sets = getSets(file);  //reads and strips off the first line
-                    int membership = 0;
                     int numMembers = 0;                    
                     int[] setMemberships;
                     
@@ -76,9 +76,7 @@ namespace FuzzySetDynamicVisualizer
                         //now we go until we can't find anymore
                         // TODO: make this harder to break with more error checking code
                         while (stringStartIndex < lineString.Length)
-                        {                           
-                            membership = 0;
-                            
+                        {   
                             //supposed to find the location of the next tab stop and parse the int within it.
                             tabIndex = lineString.IndexOf(delimiter, stringStartIndex);
                             if (tabIndex > 0 - 1) // this means there's still stuff at the end of the line without a tab at the end of it
@@ -93,6 +91,7 @@ namespace FuzzySetDynamicVisualizer
                             }
                             
                             //and now we parse
+                            int membership;
                             if (int.TryParse(membershipValue, out membership))
                                 //TODO: consider removing dictionaries entirely as they take up unneeded space
                                 setMemberships[setIndex] = membership;
@@ -121,7 +120,8 @@ namespace FuzzySetDynamicVisualizer
                     
                     foreach (Set s in sets)
                     {
-                        vizObj.Add(new SetObject(s, Color.Blue, vizPanel.Width, vizPanel.Height, (int)this.heatmapRecursionSpinner.Value, this.heatmapCheckbox.Checked));
+                        vizObj.Add(
+                            new SetViz(s, Color.Blue, vizPanel.Width, vizPanel.Height, (int)this.heatmapRecursionSpinner.Value, this.heatmapCheckbox.Checked));
                     }
                     
                     vizPanel.loadVizObjects(vizObj);

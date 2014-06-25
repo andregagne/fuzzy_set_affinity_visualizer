@@ -13,6 +13,7 @@ namespace FuzzySetDynamicVisualizer
     class FuzzySetsVizPanel : Panel
     {
         private List<VizObject> VizObjects = new List<VizObject>();
+        private static int SET_BUFFER_SPACE = 10;
         private ToolStripStatusLabel statusLabel;
         private Point previousMousePoint;
         private VizObject selected = null;
@@ -66,21 +67,51 @@ namespace FuzzySetDynamicVisualizer
 
         private void arrangeVizObjects()
         {
-            int numObjects = VizObjects.Count;
-            int maxRadius = VizObjects[0].getRadius();
+            int maxRadius = VizObjects[0].Radius;
 
             Random randoms = new Random();
 
-            //is supposed to randomly distribute objects on the screen, still needs some work.
-            foreach (VizObject vObj in VizObjects)
+            /**
+             * this will:
+             *   1) randomly set the location of the first object
+             *   
+             */
+
+            if (VizObjects.Count > 0)
             {
-                int newY = randoms.Next(this.Height - vObj.getRadius());
-                int newX = randoms.Next(this.Width - vObj.getRadius());
-                if (newX - vObj.getRadius() < 0)
-                    newX = vObj.getRadius();
-                if (newY - vObj.getRadius() < 0)
-                    newY = vObj.getRadius();
-                vObj.move(new Point(newX, newY));
+                //set first object
+                //  arrange objects around first
+
+                VizObject firstObject = VizObjects[0];
+                int newY = Math.Max(randoms.Next(this.Height - firstObject.Radius), firstObject.Radius);
+                int newX = Math.Max(randoms.Next(this.Width - firstObject.Radius), firstObject.Radius);
+
+                firstObject.move(new Point(newX, newY));
+
+                //to do this properly, I need to first know the circumfrence of the circle around a set object
+                int numAvailableLocations = 1;  //because there's always one location you can put it
+                double outerRadius = 2D * (double)SET_BUFFER_SPACE;
+                if (firstObject is SetViz)
+                {
+                    outerRadius = 2.0D * (double)((SetViz)firstObject).Radius + (double)SET_BUFFER_SPACE;
+                    double outerRing = 2.0D * Math.PI * outerRadius;
+                    //I'm adding the +1 in here to make sure there's some space between the outer sets
+                    numAvailableLocations = (int)(outerRing / ((double)((SetViz)firstObject).Radius * 2D));  
+                }
+
+                double angleStep = (2D * Math.PI) / (double)numAvailableLocations;
+                double angle = 0;
+                //now arrange the rest of the objects around the first.
+                for (int i = 1; i < VizObjects.Count & i < numAvailableLocations; i++)
+                {
+                    newX = (int)(outerRadius * Math.Sin(angle));
+                    newY = (int)(outerRadius * Math.Cos(angle));
+
+                    VizObjects[i].move(new Point(firstObject.location.X + newX, firstObject.location.Y + newY));
+                    angle += angleStep;
+                }
+
+                this.recenterObjects();
             }
         }
 
@@ -102,21 +133,22 @@ namespace FuzzySetDynamicVisualizer
                 if (selected != null)
                 {
                     previousMousePoint = tempPoint; //saving this for the move
-                    if (vObj is SetGroupObject && selected is SetObject) //special case for when we're pulling a set from a group
+                    if (vObj is SetGroupViz && selected is SetViz) //special case for when we're pulling a set from a group
                     {
-                        SetGroupObject group = (SetGroupObject) vObj;
-                        group.removeSetObj((SetObject) selected);
+                        SetGroupViz group = (SetGroupViz)vObj;
+                        group.removeSetObj((SetViz)selected);
                         //need to deal with case where removing the selected leaves only 1 set left in group  
                         // need to disolve group and add the set back to this panel's sets.
-                        if(group.numContainedSets() == 1){
-                            SetObject lastSet = group.getSets()[0];
+                        if (group.vizSets.Count == 1)
+                        {
+                            SetViz lastSet = group.vizSets[0];
                             this.VizObjects.Add(lastSet);
                             this.VizObjects.Remove(group);
                             lastSet.arrange();
                         }
 
                         this.VizObjects.Add(selected);
-                        ((SetObject)selected).arrange();
+                        ((SetViz)selected).arrange();
                     }
                     statusLabel.Text = selected.ToString() + " selected";
                     break;
@@ -127,20 +159,20 @@ namespace FuzzySetDynamicVisualizer
         private void onMouseUp(object sender, MouseEventArgs e)
         {
             //adds a set to another set or a group of sets if the first set is over them.
-            if (selected != null && selected is SetObject)
+            if (selected != null && selected is SetViz)
             {
-                List<SetObject> sets = new List<SetObject>();
+                List<SetViz> sets = new List<SetViz>();
                 foreach (VizObject obj in VizObjects)
                 {
                     if (!obj.Equals(selected) && obj.getIsHitBySelected())
                     {
-                        if (obj is SetObject)
+                        if (obj is SetViz)
                         {
-                            sets.Add((SetObject)obj);
+                            sets.Add((SetViz)obj);
                         }
-                        else if (obj is SetGroupObject)
+                        else if (obj is SetGroupViz)
                         {
-                            ((SetGroupObject)obj).addSetObj((SetObject)selected);
+                            ((SetGroupViz)obj).addSetObj((SetViz)selected);
                             sets.Clear();
                             this.VizObjects.Remove(selected);
                             this.Invalidate();
@@ -150,7 +182,7 @@ namespace FuzzySetDynamicVisualizer
                 }
                 if (sets.Count > 0)
                 {
-                    sets.Add((SetObject)selected);
+                    sets.Add((SetViz)selected);
                     this.setupSetGroup(sets);
                 }
             }
@@ -166,14 +198,14 @@ namespace FuzzySetDynamicVisualizer
                 //calculate the amount we've moved
                 int xDiff = (int)((float)e.Location.X / scale) - previousMousePoint.X;
                 int yDiff = (int)((float)e.Location.Y / scale) - previousMousePoint.Y;
-                
+
                 //save the new location
                 previousMousePoint.X = (int)((float)e.Location.X / scale);
                 previousMousePoint.Y = (int)((float)e.Location.Y / scale);
 
                 //now get the objects to move
                 selected.moveByDiff(xDiff, yDiff);
-                
+
                 //check to see if anything has been hit
                 foreach (VizObject vObj in VizObjects)
                 {
@@ -195,11 +227,11 @@ namespace FuzzySetDynamicVisualizer
          * sets should include the selected set
          *  
          */
-        public void setupSetGroup(List<SetObject> sets)
+        public void setupSetGroup(List<SetViz> sets)
         {
-            SetGroupObject newGroup = new SetGroupObject(sets, Color.Green, heatmapSwitch, heatmapRecursionDepth);
+            SetGroupViz newGroup = new SetGroupViz(sets, Color.Green, heatmapSwitch, heatmapRecursionDepth);
 
-            foreach (SetObject set in sets)
+            foreach (SetViz set in sets)
             {
                 this.VizObjects.Remove(set);
                 set.setIsHitBySelected(false);
@@ -224,17 +256,17 @@ namespace FuzzySetDynamicVisualizer
         {
             foreach (VizObject vizObj in VizObjects)
             {
-                if (vizObj is MemberObject)
+                if (vizObj is MemberViz)
                 {
-                    ((MemberObject)vizObj).setRadius(newRadius);
+                    ((MemberViz)vizObj).Radius = newRadius;
                 }
-                else if (vizObj is SetObject)
+                else if (vizObj is SetViz)
                 {
-                    ((SetObject)vizObj).setMemberRadius(newRadius);
+                    ((SetViz)vizObj).setMemberRadius(newRadius);
                 }
-                else if (vizObj is SetGroupObject)
+                else if (vizObj is SetGroupViz)
                 {
-                    ((SetGroupObject)vizObj).setMemberRadius(newRadius);
+                    ((SetGroupViz)vizObj).setMemberRadius(newRadius);
                 }
             }
             this.Invalidate();
@@ -246,13 +278,13 @@ namespace FuzzySetDynamicVisualizer
         {
             foreach (VizObject vizObj in VizObjects)
             {
-                if (vizObj is SetObject)
+                if (vizObj is SetViz)
                 {
-                    ((SetObject)vizObj).setMemberAlpha(newAlpha);
+                    ((SetViz)vizObj).setMemberAlpha(newAlpha);
                 }
-                else if (vizObj is SetGroupObject)
+                else if (vizObj is SetGroupViz)
                 {
-                    ((SetGroupObject)vizObj).setMemberAlpha(newAlpha);
+                    ((SetGroupViz)vizObj).setMemberAlpha(newAlpha);
                 }
             }
             this.Invalidate();
@@ -266,13 +298,13 @@ namespace FuzzySetDynamicVisualizer
             this.heatmapSwitch = useHeatmap;
             foreach (VizObject vObj in VizObjects)
             {
-                if (vObj is SetGroupObject)  // currently heatmaps are targetted for set groups only, may do sets next
+                if (vObj is SetGroupViz)  // currently heatmaps are targetted for set groups only, may do sets next
                 {
-                    ((SetGroupObject)vObj).setUseHeatmap(useHeatmap);
+                    ((SetGroupViz)vObj).setUseHeatmap(useHeatmap);
                 }
-                else if (vObj is SetObject)
+                else if (vObj is SetViz)
                 {
-                    ((SetObject)vObj).setHeatmaps(useHeatmap);
+                    ((SetViz)vObj).setHeatmaps(useHeatmap);
                 }
             }
             this.Invalidate();
@@ -291,8 +323,8 @@ namespace FuzzySetDynamicVisualizer
             //sum the X's and Ys
             foreach (VizObject vObj in VizObjects)
             {
-                calculatedX += vObj.getLocation().X;
-                calculatedY += vObj.getLocation().Y;
+                calculatedX += vObj.location.X;
+                calculatedY += vObj.location.Y;
             }
 
             //now we average the sums
@@ -303,11 +335,11 @@ namespace FuzzySetDynamicVisualizer
             int windowCenterX = this.Size.Width / 2;
             int windowCenterY = this.Size.Height / 2;
 
-             //calculate difference
+            //calculate difference
             int xDiff = windowCenterX - calculatedX;
             int yDiff = windowCenterY - calculatedY;
 
-            foreach(VizObject vObj in VizObjects)
+            foreach (VizObject vObj in VizObjects)
             {
                 vObj.moveByDiff(xDiff, yDiff);
             }
@@ -318,15 +350,16 @@ namespace FuzzySetDynamicVisualizer
         {
             heatmapRecursionDepth = newRecursionDepth;
             int hasChanged = 0;
-            foreach(VizObject vizObj in VizObjects){
-                if (vizObj is SetGroupObject)
+            foreach (VizObject vizObj in VizObjects)
+            {
+                if (vizObj is SetGroupViz)
                 {
-                    if (((SetGroupObject)vizObj).setHeatmapRecursionDepth(newRecursionDepth))
+                    if (((SetGroupViz)vizObj).setHeatmapRecursionDepth(newRecursionDepth))
                         hasChanged++;
                 }
-                else if (vizObj is SetObject)
+                else if (vizObj is SetViz)
                 {
-                    if (((SetObject)vizObj).setHeatmapRecursionDepth(newRecursionDepth))
+                    if (((SetViz)vizObj).setHeatmapRecursionDepth(newRecursionDepth))
                         hasChanged++;
                 }
             }

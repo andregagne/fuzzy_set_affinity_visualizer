@@ -7,7 +7,7 @@ namespace FuzzySetDynamicVisualizer.DataStructures
 {
     public class Member
     {
-        private string label;        
+        public readonly string label;
         private List<Set> sets;
         private int[] memberships;
         private int totalValue = 0;
@@ -18,23 +18,26 @@ namespace FuzzySetDynamicVisualizer.DataStructures
             this.memberships = memberships;
             this.sets = sets;
 
+            //now we have the member add itself to the set that it has the highest affinity with
             int maxValue = 0;
             int maxIndex = 0;
 
-            for(int i = 0; i < memberships.Length; i++){
+            for (int i = 0; i < memberships.Length; i++)
+            {
                 totalValue += memberships[i];
-                if(memberships[i] >= maxValue){
+                if (memberships[i] >= maxValue)
+                {
                     maxValue = memberships[i];
                     maxIndex = i;
                 }
             }
 
             Set maxSet = sets[maxIndex];
-            maxSet.addMember(this);
+            maxSet.members.Add(this);
         }
 
         /**
-         * returns an int between 0 and 100
+         * returns the membership as a value between 0 and 1
          */
         public float getMembershipAsPercent(Set set)
         {
@@ -46,14 +49,9 @@ namespace FuzzySetDynamicVisualizer.DataStructures
             }
 
             float returnVal = 0;
-            if(setIndex >= 0)
+            if (setIndex >= 0)
                 returnVal = (float)memberships[setIndex] / (float)totalValue * 100.0f;
             return returnVal;
-        }
-
-        public string getLabel()
-        {
-            return label;
         }
     }
 }

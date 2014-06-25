@@ -7,43 +7,39 @@ using FuzzySetDynamicVisualizer.DataStructures;
 
 namespace FuzzySetDynamicVisualizer.VizObjects
 {
-    public class MemberObject : VizObject
+    public class MemberViz : VizObject
     {
-        private Member member;
-        
-        public MemberObject(Member member) : base()
-        {            
-            this.member = member;
+        public readonly Member member;
 
-            this.radius = 5;
-        }
-
-        public MemberObject(Member member, int screenWidth, int screenHeight): base(screenWidth, screenHeight, 0.01f)
+        public MemberViz(Member member, Brush brush)
+            : base()
         {
             this.member = member;
+
+            this.Radius = 5;
         }
 
-
-        public Member getMember()
+        public MemberViz(Member member, Brush brush, int screenWidth, int screenHeight)
+            : base(screenWidth, screenHeight, 0.01f)
         {
-            return member;
+            this.member = member;
         }
 
         public override void visualize(Graphics graphics)
         {
-            graphics.FillEllipse(new SolidBrush(Color.Black), this.location.X - radius, this.location.Y - radius, radius * 2, radius * 2);            
+            graphics.FillEllipse(new SolidBrush(Color.Black), this.location.X - Radius, this.location.Y - Radius, Radius * 2, Radius * 2);
         }
 
         //this acknowledges that the member object is a special object that will always be a part of another visual object
         // as a result we never need to keep it updated.
         public void visualize(Graphics graphics, Point parentPoint, Brush brush)
         {
-            graphics.FillEllipse(brush, parentPoint.X + this.location.X - radius, parentPoint.Y + this.location.Y - radius, radius * 2, radius * 2);            
-        }        
+            graphics.FillEllipse(brush, parentPoint.X + this.location.X - Radius, parentPoint.Y + this.location.Y - Radius, Radius * 2, Radius * 2);
+        }
 
         public override string ToString()
         {
-            return member.getLabel();
+            return member.label;
         }
 
         public override void move(Point newPoint)

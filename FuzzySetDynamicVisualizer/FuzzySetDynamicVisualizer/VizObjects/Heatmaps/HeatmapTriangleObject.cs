@@ -10,7 +10,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 {
     public class HeatmapTriangleObject : VizObject
     {
-        protected List<MemberObject> members;
+        public readonly List<MemberViz> members;
         protected Point[] points = new Point[3];
         protected int numMaxMembers = 1; //needed to determine alpha/shading levels
         
@@ -27,7 +27,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         {
             this.points = points;
             this.numMaxMembers = maxMemberNum;
-            this.members = new List<MemberObject>();
+            this.members = new List<MemberViz>();
 
             //now we find the middle point of the points
             int x = 0, y = 0;
@@ -43,7 +43,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             location.Y = y;
         }
 
-        public HeatmapTriangleObject(List<MemberObject> members, int maxMemberNum, Point[] points) : base()
+        public HeatmapTriangleObject(List<MemberViz> members, int maxMemberNum, Point[] points) : base()
         {
             //because pass by reference and we don't want to screw up so much fun stuff!
             for( int i = 0; i < points.Length; i++)
@@ -66,7 +66,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             location.Y = y;
         }
 
-        public HeatmapTriangleObject(List<MemberObject> members, int maxMemberNum, Point point1, Point point2, Point point3) : base()
+        public HeatmapTriangleObject(List<MemberViz> members, int maxMemberNum, Point point1, Point point2, Point point3) : base()
         {
             this.members = members;
             this.numMaxMembers = maxMemberNum;
@@ -85,6 +85,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             x = (int)((float)x / (float)points.Length);
             y = (int)((float)y / (float)points.Length);
 
+            
             location.X = x;
             location.Y = y;
         }
@@ -122,8 +123,8 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 points[i].X += xDiff;
                 points[i].Y += yDiff;                
             }
-            this.location.X += xDiff;
-            this.location.Y += yDiff;
+            location.X += xDiff;
+            location.Y += yDiff;
         }
 
         private Color determineColor()
@@ -135,21 +136,6 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             //int alpha = (int)(Math.Log((double)members.Count, (double)maxMemberNum) * 255);
 
             return Color.FromArgb(alpha, Color.Black);            
-        }
-
-        public void addMember(MemberObject newMember)
-        {
-            this.members.Add(newMember);
-        }
-
-        public void addMembers(List<MemberObject> newMembers)
-        {
-            this.members.AddRange(newMembers);
-        }
-
-        public List<MemberObject> getMembers()
-        {
-            return members;
         }
 
         public int getNumMaxMembers()
@@ -186,16 +172,16 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
             int numFailures = 0;
 
-            foreach (MemberObject member in members)
+            foreach (MemberViz member in members)
             {
-                if (subTriangles[0].isPointInside(member.getLocation()))
-                    subTriangles[0].addMember(member);
-                else if (subTriangles[1].isPointInside(member.getLocation()))
-                    subTriangles[1].addMember(member);
-                else if (subTriangles[2].isPointInside(member.getLocation()))
-                    subTriangles[2].addMember(member);
-                else if (subTriangles[3].isPointInside(member.getLocation()))
-                    subTriangles[3].addMember(member);
+                if (subTriangles[0].isPointInside(member.location))
+                    subTriangles[0].members.Add(member);
+                else if (subTriangles[1].isPointInside(member.location))
+                    subTriangles[1].members.Add(member);
+                else if (subTriangles[2].isPointInside(member.location))
+                    subTriangles[2].members.Add(member);
+                else if (subTriangles[3].isPointInside(member.location))
+                    subTriangles[3].members.Add(member);
                 else
                     numFailures++;
             }
