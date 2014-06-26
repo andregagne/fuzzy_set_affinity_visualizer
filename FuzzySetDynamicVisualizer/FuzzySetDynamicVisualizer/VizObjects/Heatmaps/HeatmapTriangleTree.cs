@@ -15,12 +15,12 @@ namespace FuzzySetDynamicVisualizer.VizObjects
      */
     class HeatmapTriangleTree
     {
-        private HeatmapTriangleObject data = null;
-        private HeatmapTriangleTree parentNode = null;
-        private Point[] points;
+        public readonly HeatmapTriangleObject data = null;
+        public readonly HeatmapTriangleTree parentNode = null;
+        public readonly Point[] points;
+        public readonly List<HeatmapTriangleTree> childrenNodes = new List<HeatmapTriangleTree>();
         private Point middlePoint = new Point(0, 0);
-        private List<HeatmapTriangleTree> childrenNodes = new List<HeatmapTriangleTree>();
-        private int numMaxMembers = 0;
+        public int numMaxMembers = 0;
 
         public HeatmapTriangleTree(HeatmapTriangleObject starterData, HeatmapTriangleTree parent, Point[] starterPoints)
         {
@@ -51,7 +51,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
             foreach (HeatmapTriangleTree childNode in childrenNodes){
                 if (childNode.isLeaf())
-                    returnTriangles.Add(childNode.getData());              
+                    returnTriangles.Add(childNode.data);              
                 else
                     returnTriangles.AddRange(childNode.getChildrenData());                
             }                
@@ -62,11 +62,11 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         //collapses the children of this node into a single triangle object
         public HeatmapTriangleObject collapseChildren()
         {
-            HeatmapTriangleObject returnTriangle = new HeatmapTriangleObject(childrenNodes[0].getData().getNumMaxMembers(), points);
+            HeatmapTriangleObject returnTriangle = new HeatmapTriangleObject(childrenNodes[0].data.numMaxMembers, points);
 
             foreach (HeatmapTriangleTree childNode in childrenNodes)
             {
-                returnTriangle.members.AddRange(childNode.getData().members);
+                returnTriangle.members.AddRange(childNode.data.members);
             }
 
             childrenNodes.Clear();
@@ -80,7 +80,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
             foreach (HeatmapTriangleObject triangle in subTriangles)
             {
-                this.childrenNodes.Add(new HeatmapTriangleTree(triangle, this, triangle.getPoints()));
+                this.childrenNodes.Add(new HeatmapTriangleTree(triangle, this, triangle.points));
             }
 
             return subTriangles;
@@ -110,16 +110,6 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             }
         }
 
-        public HeatmapTriangleObject getData()
-        {
-            return data;
-        }
-
-        internal List<HeatmapTriangleTree> getChildren()
-        {
-            return childrenNodes;
-        }
-
         public bool isLeaf()
         {
             return childrenNodes.Count == 0 ? true : false;
@@ -137,11 +127,6 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             } else {
                 return 1 + childrenNodes[0].getDepth();  //we can do this because we know the tree is evenly balanced
             }
-        }
-
-        internal void setNumMaxMembers(int newMax)
-        {
-            this.numMaxMembers = newMax;           
         }
                
         internal List<HeatmapTriangleTree> getLeaves()
@@ -178,8 +163,8 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         {
             if (this.isLeaf())
             {
-                this.setNumMaxMembers(newNumMaxMembers);
-                this.data.setNumMaxMembers(newNumMaxMembers);
+                this.numMaxMembers = newNumMaxMembers;
+                this.data.numMaxMembers = newNumMaxMembers;
             }
             else
             {

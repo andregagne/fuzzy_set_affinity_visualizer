@@ -11,11 +11,12 @@ namespace FuzzySetDynamicVisualizer.VizObjects
     public class HeatmapTriangleObject : VizObject
     {
         public readonly List<MemberViz> members;
-        protected Point[] points = new Point[3];
-        protected int numMaxMembers = 1; //needed to determine alpha/shading levels
-        
+        public readonly Point[] points = new Point[3];
+        public int numMaxMembers = 1; //needed to determine alpha/shading levels
 
-        public HeatmapTriangleObject() : base(){
+        public HeatmapTriangleObject()
+            : base()
+        {
             for (int i = 0; i < points.Length; i++)
             {
                 points[i] = new Point(0, 0);
@@ -43,10 +44,11 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             location.Y = y;
         }
 
-        public HeatmapTriangleObject(List<MemberViz> members, int maxMemberNum, Point[] points) : base()
+        public HeatmapTriangleObject(List<MemberViz> members, int maxMemberNum, Point[] points)
+            : base()
         {
-            //because pass by reference and we don't want to screw up so much fun stuff!
-            for( int i = 0; i < points.Length; i++)
+            //Create a new set of points so we don't inadvertantly interact with other classes
+            for (int i = 0; i < points.Length; i++)
                 this.points[i] = new Point(points[i].X, points[i].Y);
 
             this.members = members;
@@ -66,11 +68,13 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             location.Y = y;
         }
 
-        public HeatmapTriangleObject(List<MemberViz> members, int maxMemberNum, Point point1, Point point2, Point point3) : base()
+        public HeatmapTriangleObject(List<MemberViz> members, int maxMemberNum, Point point1, Point point2, Point point3)
+            : base()
         {
             this.members = members;
             this.numMaxMembers = maxMemberNum;
-            //why are we instantiating new points?  because pass by reference!
+
+            //Create a new set of points so we don't inadvertantly interact with other classes
             this.points[0] = new Point(point1.X, point1.Y);
             this.points[1] = new Point(point2.X, point2.Y);
             this.points[2] = new Point(point3.X, point3.Y);
@@ -85,7 +89,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             x = (int)((float)x / (float)points.Length);
             y = (int)((float)y / (float)points.Length);
 
-            
+
             location.X = x;
             location.Y = y;
         }
@@ -113,15 +117,15 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
         public void move(int newX, int newY)
         {
-            moveByDiff(newX - location.X, newY - location.Y);            
+            moveByDiff(newX - location.X, newY - location.Y);
         }
 
         public override void moveByDiff(int xDiff, int yDiff)
-        {            
+        {
             for (int i = 0; i < points.Length; i++)
-            {                
+            {
                 points[i].X += xDiff;
-                points[i].Y += yDiff;                
+                points[i].Y += yDiff;
             }
             location.X += xDiff;
             location.Y += yDiff;
@@ -135,17 +139,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             //this is for a logarithmic scale
             //int alpha = (int)(Math.Log((double)members.Count, (double)maxMemberNum) * 255);
 
-            return Color.FromArgb(alpha, Color.Black);            
-        }
-
-        public int getNumMaxMembers()
-        {
-            return numMaxMembers;
-        }
-
-        public void setNumMaxMembers(int newNumMaxMembers)
-        {
-            this.numMaxMembers = newNumMaxMembers;
+            return Color.FromArgb(alpha, Color.Black);
         }
 
         public List<HeatmapTriangleObject> getSubTriangles()
@@ -165,7 +159,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 (int)(((float)points[2].Y + (float)points[0].Y) / 2.0f)
                 );
 
-            subTriangles.Add(new HeatmapTriangleObject(numMaxMembers, new Point[] { points[0], medialPoint1, medialPoint3}));
+            subTriangles.Add(new HeatmapTriangleObject(numMaxMembers, new Point[] { points[0], medialPoint1, medialPoint3 }));
             subTriangles.Add(new HeatmapTriangleObject(numMaxMembers, new Point[] { points[1], medialPoint1, medialPoint2 }));
             subTriangles.Add(new HeatmapTriangleObject(numMaxMembers, new Point[] { points[2], medialPoint2, medialPoint3 }));
             subTriangles.Add(new HeatmapTriangleObject(numMaxMembers, new Point[] { medialPoint1, medialPoint2, medialPoint3 }));
@@ -186,7 +180,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                     numFailures++;
             }
 
-            if(numFailures > 0)
+            if (numFailures > 0)
                 Console.Out.WriteLine(numFailures + " of points were not added");
 
             return subTriangles;
@@ -202,7 +196,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             //initial vectors
             PointF vector1 = new PointF((float)points[1].X - (float)points[0].X, (float)points[1].Y - (float)points[0].Y);
             PointF vector2 = new PointF((float)points[2].X - (float)points[0].X, (float)points[2].Y - (float)points[0].Y);
-            PointF vector3 = new PointF((float) testPoint.X - (float)points[0].X, (float) testPoint.Y - (float)points[0].Y);
+            PointF vector3 = new PointF((float)testPoint.X - (float)points[0].X, (float)testPoint.Y - (float)points[0].Y);
 
             //and now the dot products of the different vectors
             float dot11 = vector1.X * vector1.X + vector1.Y * vector1.Y;
@@ -221,11 +215,6 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             // u and v will only be positive if the point is between them on the smallest side, will only sum to 1 if it is within the triangles
             isInside = (u >= 0) && (v >= 0) && (u + v <= 1);
             return isInside;
-        }
-
-        public Point[] getPoints()
-        {
-            return this.points;
         }
     }
 }

@@ -18,6 +18,7 @@ namespace FuzzySetDynamicVisualizer
         private readonly FuzzySetsVizPanel vizPanel;
         private static string titleText = "Fuzzy Set Affinity Visualizer";
         private const char delimiter = '\t';
+        private const int heatmapThreshold = 100000;
 
         public MainForm()
         {
@@ -40,92 +41,85 @@ namespace FuzzySetDynamicVisualizer
             Debug.Assert(vizPanel != null);
             using (StreamReader file = new StreamReader(fileName))
             {
+                List<Set> sets = getSets(file);  //reads and strips off the first line
+                int numMembers = 0;  //we want to be above a threshold
+
+                //for line parsing  
+                String membershipValue = null;
+
+                while (!file.EndOfStream)
                 {
-                    List<Set> sets = getSets(file);  //reads and strips off the first line
-                    int numMembers = 0;                    
-                    int[] setMemberships;
-                    
-                    //for line parsing
-                    String lineString;
                     int stringStartIndex = 0;
-                    int tabIndex = 0;
-                    String memberName = null;
                     int setIndex = 0;
-                    String membershipValue = null;
-                    
+                    int[] setMemberships = new int[sets.Count];
 
-                    while (!file.EndOfStream)
+                    //initialize the memberships to 0
+                    //that way if one is missing it will automatically be 0
+                    for (int i = 0; i < sets.Count; i++)
+                        setMemberships[i] = 0;
+
+
+                    String lineString = file.ReadLine();
+
+                    /*
+                     * in order to cut down on memory usage we're going to step through the string for the file line
+                     * manually looking for tabdeliniations
+                     */
+
+                    //grab the name first
+                    int delimiterIndex = lineString.IndexOf(delimiter);
+                    String memberName = lineString.Substring(0, delimiterIndex);
+                    stringStartIndex = delimiterIndex + 1;
+
+                    //now we go until we can't find anymore or we can't put any more into the membership
+                    while (stringStartIndex < lineString.Length && setIndex < sets.Count)
                     {
-                        stringStartIndex = 0;
-                        setIndex = 0;                        
-                        setMemberships = new int[sets.Count];
-
-                                                
-                        lineString = file.ReadLine();                                            
-
-                        /*
-                         * in order to cut down on memory usage we're going to step through the string for the file line
-                         * manually looking for tabdeliniations
-                         */
-
-                        //grab the name first
-                        tabIndex = lineString.IndexOf(delimiter);
-                        memberName = lineString.Substring(0, tabIndex);
-                        stringStartIndex = tabIndex + 1;
-
-                        //now we go until we can't find anymore
-                        // TODO: make this harder to break with more error checking code
-                        while (stringStartIndex < lineString.Length)
-                        {   
-                            //supposed to find the location of the next tab stop and parse the int within it.
-                            tabIndex = lineString.IndexOf(delimiter, stringStartIndex);
-                            if (tabIndex > 0 - 1) // this means there's still stuff at the end of the line without a tab at the end of it
-                            {
-                                membershipValue = lineString.Substring(stringStartIndex, tabIndex - stringStartIndex);
-                                stringStartIndex = tabIndex + 1;
-                            }
-                            else
-                            {
-                                membershipValue = lineString.Substring(stringStartIndex, lineString.Length - stringStartIndex);
-                                stringStartIndex = lineString.Length;
-                            }
-                            
-                            //and now we parse
-                            int membership;
-                            if (int.TryParse(membershipValue, out membership))
-                                //TODO: consider removing dictionaries entirely as they take up unneeded space
-                                setMemberships[setIndex] = membership;
-                            else
-                                System.Console.WriteLine("Could not parse " + membershipValue);                                
-
-                            
-                            setIndex++;
+                        //supposed to find the location of the next tab stop and parse the int within it.
+                        delimiterIndex = lineString.IndexOf(delimiter, stringStartIndex);
+                        if (delimiterIndex > -1) // this means there's still stuff at the end of the line without a tab at the end of it
+                        {
+                            membershipValue = lineString.Substring(stringStartIndex, delimiterIndex - stringStartIndex);
+                            stringStartIndex = delimiterIndex + 1;
+                        }
+                        else
+                        {
+                            membershipValue = lineString.Substring(stringStartIndex, lineString.Length - stringStartIndex);
+                            stringStartIndex = lineString.Length;
                         }
 
-                        if(setIndex != sets.Count)
-                            System.Console.WriteLine("Something is off, the # of sets parsed was " + setIndex +", should have been " + sets.Count);
+                        //and now we parse
+                        int membership;
+                        if (int.TryParse(membershipValue, out membership))                            
+                            setMemberships[setIndex] = membership;
+                        else
+                            System.Console.WriteLine("Could not parse " + membershipValue);
 
-                        new Member(memberName, sets, setMemberships);  //adds itself to the set that it has the highest affinity to
-                        numMembers++;
+                        setIndex++;
                     }
 
+                    if (setIndex != sets.Count)
+                        System.Console.WriteLine("Something is off, the # of sets parsed was " + setIndex + ", should have been " + sets.Count);
 
-                    List<VizObject> vizObj = new List<VizObject>();
-
-                    if (numMembers >= 100000)
-                    {
-                        this.heatmapCheckbox.Checked = true;
-                        vizPanel.useHeatmap(true);
-                    }
-                    
-                    foreach (Set s in sets)
-                    {
-                        vizObj.Add(
-                            new SetViz(s, Color.Blue, vizPanel.Width, vizPanel.Height, (int)this.heatmapRecursionSpinner.Value, this.heatmapCheckbox.Checked));
-                    }
-                    
-                    vizPanel.loadVizObjects(vizObj);
+                    new Member(memberName, sets, setMemberships);  //adds itself to the set that it has the highest affinity to
+                    numMembers++;
                 }
+
+
+                List<VizObject> vizObj = new List<VizObject>();
+
+                if (numMembers >= heatmapThreshold)
+                {
+                    this.heatmapCheckbox.Checked = true;
+                    vizPanel.useHeatmap(true);
+                }
+
+                foreach (Set s in sets)
+                {
+                    vizObj.Add(
+                        new SetViz(s, Color.Blue, vizPanel.Width, vizPanel.Height, (int)this.heatmapRecursionSpinner.Value, this.heatmapCheckbox.Checked));
+                }
+
+                vizPanel.loadVizObjects(vizObj);
                 vizPanel.Invalidate();
                 this.Text = titleText += fileName;
             }
@@ -187,12 +181,8 @@ namespace FuzzySetDynamicVisualizer
 
         private void heatmapValueChanged(object sender, EventArgs e)
         {
-            this.vizPanel.heatmapValueChanged((int) heatmapRecursionSpinner.Value);
+            this.vizPanel.heatmapValueChanged((int)heatmapRecursionSpinner.Value);
         }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
-        }
     }
 }

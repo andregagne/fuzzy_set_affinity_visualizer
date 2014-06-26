@@ -15,10 +15,12 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         private Color colour;        
 
         //variables for heatmaps
-        private readonly List<HeatmapTriangleTree> heatmapObjects = new List<HeatmapTriangleTree>();
+        private readonly List<HeatmapTriangleTree> heatmapTrees = new List<HeatmapTriangleTree>();
         private int heatmapRecursionDepth = 1;         
         private bool useHeatmap = false;
-        private int globalMaxAmount = 1;
+
+        //variables for line heatmaps
+        private int lineHeatmapMax = 1;
         private int[] heatmapBins;
         private static float LINE_HEATMAP_WIDTH = 20.0f;              
 
@@ -33,8 +35,8 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             vizSets.AddRange(newSets);
             this.location = this.calculateCenterPoint();
             this.Radius = newSets[0].Radius * 2;
-            foreach (SetViz setObj in newSets)
-                setStructures.Add(setObj.set, setObj);
+            foreach (SetViz setVizObj in newSets)
+                setStructures.Add(setVizObj.set, setVizObj);
             this.arrangeObjects();
             this.colour = Color.FromArgb(50, color);
         }
@@ -46,8 +48,8 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             vizSets.AddRange(newSets);
             this.location = this.calculateCenterPoint();
             this.Radius = newSets[0].Radius * 2;
-            foreach (SetViz setObj in newSets)
-                setStructures.Add(setObj.set, setObj);
+            foreach (SetViz setVizObj in newSets)
+                setStructures.Add(setVizObj.set, setVizObj);
             this.arrangeObjects();
             this.colour = Color.FromArgb(50, color);
         }
@@ -68,27 +70,27 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                     this.visualizeLineHeatmap(graphics);
                 else  // we know there are 3 or more so we'll use the triangle visualization system
                 {
-                    foreach (HeatmapTriangleTree triangleTree in heatmapObjects)
+                    foreach (HeatmapTriangleTree triangleTree in heatmapTrees)
                     {
                         this.visualizeHeatmapTriangle(graphics, triangleTree);
                     }
                 }
 
-            foreach (SetViz setObj in vizSets)
+            foreach (SetViz setVizObj in vizSets)
             {
                 //draws the center point for the sets
-                if (setObj.location.X < location.X)
-                    setObj.drawCore(graphics, false, false);
+                if (setVizObj.location.X < location.X)
+                    setVizObj.drawCore(graphics, false, false);
                 else
-                    setObj.drawCore(graphics, true, false);
+                    setVizObj.drawCore(graphics, true, false);
 
                 if (!useHeatmap)
                 {
-                    setObj.visualizeChildrenAtLocation(graphics, this.location);
+                    setVizObj.visualizeChildrenAtLocation(graphics, this.location);
                 }                
 
-                points.Add(setObj.location);
-                graphics.DrawLine(linePen, this.location, setObj.location);
+                points.Add(setVizObj.location);
+                graphics.DrawLine(linePen, this.location, setVizObj.location);
             }
             graphics.DrawPolygon(linePen, points.ToArray());
         }
@@ -101,11 +103,11 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         {
             if (tree.isLeaf())
             {
-                tree.getData().visualize(graphics, this.location);
+                tree.data.visualize(graphics, this.location);
             }
             else
             {
-                foreach (HeatmapTriangleTree child in tree.getChildren())
+                foreach (HeatmapTriangleTree child in tree.childrenNodes)
                 {
                     this.visualizeHeatmapTriangle(graphics, child);
                 }
@@ -138,7 +140,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         private Color determineColor(int currentAmount)
         {
             //this is for straight gradiant alphas
-            int alpha = (int)((float)currentAmount / (float)globalMaxAmount * 255);
+            int alpha = (int)((float)currentAmount / (float)lineHeatmapMax * 255);
 
             //this is for a logarithmic scale
             //int alpha = (int)(Math.Log((double)members.Count, (double)maxMemberNum) * 255);
@@ -174,12 +176,12 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         }
         #endregion
 
-        public void addSetObj(SetViz newSetObj)
+        public void addSetObj(SetViz newSetVizObj)
         {
-            if (!vizSets.Contains(newSetObj))
+            if (!vizSets.Contains(newSetVizObj))
             {
-                this.vizSets.Add(newSetObj);
-                setStructures.Add(newSetObj.set, newSetObj);
+                this.vizSets.Add(newSetVizObj);
+                setStructures.Add(newSetVizObj.set, newSetVizObj);
                 this.location = this.calculateCenterPoint();
                 this.arrangeObjects();
             }
@@ -217,28 +219,28 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
         /**
          * need to do several things:
-         * pre 1) figure out locations of the sets
-         * 1) draw the core circles of the different sets
-         * 2) draw the different member objects
+         * 1) figure out locations of the sets
+         * 2) draw the core circles of the different sets
+         * 3) draw the different member objects
          *    each member needs to be influenced by the different sets based upon its membership amounts
          */
         public void arrangeObjects()
         {
             int numMembers = 0;
-            foreach (SetViz setObj in vizSets)
+            foreach (SetViz setVizObj in vizSets)
             {
-                numMembers += setObj.getMemberObjs().Count;
+                numMembers += setVizObj.memberVizs.Count;
             }
 
             double angleStep = (2D * Math.PI) / (double)this.vizSets.Count;
             double angle = 0;
 
-            foreach (SetViz setObj in vizSets)
+            foreach (SetViz setVizObj in vizSets)
             {
                 int newX = (int)((double)Radius * Math.Sin(angle));
                 int newY = (int)((double)Radius * Math.Cos(angle));
 
-                setObj.move(this.location.X + newX, this.location.Y + newY);
+                setVizObj.move(this.location.X + newX, this.location.Y + newY);
                 angle += angleStep;
             }
 
@@ -247,7 +249,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             if (useHeatmap)
                 if (vizSets.Count == 2)
                     setupLineHeatmap();
-                else   //setObjects will always have 2 or more objects
+                else   //setVizObjects will always have 2 or more objects
                     setupTriangleHeatmap();
 
         }
@@ -256,9 +258,9 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         private void setupOverdraw()
         {
             //need to figure out where the sets will be located before we can setup the forces on the members
-            foreach (SetViz setObj in vizSets)
+            foreach (SetViz setVizObj in vizSets)
             {
-                foreach (MemberViz mObj in setObj.getMemberObjs())
+                foreach (MemberViz mObj in setVizObj.memberVizs)
                 {
                     int memberX = 0;
                     int memberY = 0;
@@ -306,7 +308,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
          */
         private void setupTriangleHeatmap()
         {
-            heatmapObjects.Clear();
+            heatmapTrees.Clear();
 
             List<MemberViz> members = new List<MemberViz>();
             List<Point> setLocations = new List<Point>();
@@ -316,7 +318,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             //pull what we want from the sets
             foreach (SetViz set in vizSets)
             {
-                members.AddRange(set.getMemberObjs());
+                members.AddRange(set.memberVizs);
                 setLocations.Add(new Point(set.location.X - this.location.X, set.location.Y - this.location.Y));
             }
 
@@ -353,7 +355,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
             foreach (HeatmapTriangleObject triangle in vizTriangles)
             {
-                heatmapObjects.Add(new HeatmapTriangleTree(triangle, null, triangle.getPoints()));
+                heatmapTrees.Add(new HeatmapTriangleTree(triangle, null, triangle.points));
             }
 
             //now we find the global maximum number of members and distribute it out
@@ -363,7 +365,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 if (newNumMaxMembers < triangle.members.Count)
                     newNumMaxMembers = triangle.members.Count;
             }
-            foreach (HeatmapTriangleTree triangle in heatmapObjects)
+            foreach (HeatmapTriangleTree triangle in heatmapTrees)
             {
                 triangle.setLeafMaxMembers(newNumMaxMembers);
             }
@@ -386,13 +388,13 @@ namespace FuzzySetDynamicVisualizer.VizObjects
          */
         private void doHeatmapRecursion(int maxDepth)
         {
-            if (heatmapObjects[0].getDepth() != maxDepth)
+            if (heatmapTrees[0].getDepth() != maxDepth)
             {
-                if (heatmapObjects[0].getDepth() > maxDepth) // The tree is deeper than we want, collapse it
+                if (heatmapTrees[0].getDepth() > maxDepth) // The tree is deeper than we want, collapse it
                 {
-                    while (heatmapObjects[0].getDepth() > maxDepth)
+                    while (heatmapTrees[0].getDepth() > maxDepth)
                     {
-                        foreach (HeatmapTriangleTree tree in heatmapObjects)
+                        foreach (HeatmapTriangleTree tree in heatmapTrees)
                         {
                             foreach (HeatmapTriangleTree leaf in tree.getLeavesAtDepth(tree.getDepth() - 1))
                             {
@@ -403,10 +405,10 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                 }
                 else  // the heart of the splitting
                 {
-                    while (heatmapObjects[0].getDepth() < maxDepth)
+                    while (heatmapTrees[0].getDepth() < maxDepth)
                     {
                         List<HeatmapTriangleObject> newLeaves = new List<HeatmapTriangleObject>();
-                        foreach (HeatmapTriangleTree tree in heatmapObjects)
+                        foreach (HeatmapTriangleTree tree in heatmapTrees)
                         {
                             foreach (HeatmapTriangleTree leaf in tree.getLeaves())  //split and get the subtraingles.
                             {
@@ -421,7 +423,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                             if (newNumMaxMembers < triangle.members.Count)
                                 newNumMaxMembers = triangle.members.Count;
                         }
-                        foreach (HeatmapTriangleTree triangle in heatmapObjects)
+                        foreach (HeatmapTriangleTree triangle in heatmapTrees)
                         {
                             triangle.setLeafMaxMembers(newNumMaxMembers);
                         }
@@ -456,7 +458,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             List<MemberViz> members = new List<MemberViz>();
 
             foreach(SetViz set in vizSets)
-                members.AddRange(set.getMemberObjs());
+                members.AddRange(set.memberVizs);
             
             foreach (MemberViz member in members)
             {
@@ -475,7 +477,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                     newNumMaxMembers = heatmapBins[i];
             }
 
-            this.globalMaxAmount = newNumMaxMembers;
+            this.lineHeatmapMax = newNumMaxMembers;
         }
 
 
@@ -510,8 +512,8 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         #region getters and setters
         internal void setMemberRadius(int newRadius)
         {
-            foreach (SetViz setObj in vizSets)
-                setObj.setMemberRadius(newRadius);
+            foreach (SetViz setVizObj in vizSets)
+                setVizObj.setMemberRadius(newRadius);
         }
 
         internal int getMemberRadius()
@@ -546,7 +548,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
                     this.setupLineHeatmap();
                     setupHeatmaps = true;
                 } else{
-                    if (heatmapObjects.Count > 0) //we have heatmap objects
+                    if (heatmapTrees.Count > 0) //we have heatmap objects
                     {
                         if (newRecursionDepth > 0)
                         {

@@ -15,7 +15,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         private int alpha = 50;
         private Font thisFont;
         private static float CORE_SCALE = 0.05f;
-        protected readonly Random randGenerator = new Random();
+        private readonly Random randGenerator = new Random();
 
         //for Heatmaps       
         private bool useHeatmaps = false;
@@ -24,7 +24,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
         private int[] heatmapBins;
 
         //memberStuff
-        private List<MemberViz> members = new List<MemberViz>();
+        public readonly List<MemberViz> memberVizs = new List<MemberViz>();
         private int memberAlpha = 30;
         private Color memberColor;
         private Brush memberBrush;
@@ -101,7 +101,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
         public void visualizeChildrenAtLocation(Graphics graphics, Point location)
         {
-            foreach (MemberViz m in members)
+            foreach (MemberViz m in memberVizs)
                 m.visualize(graphics, this.location, memberBrush);
         }
 
@@ -187,8 +187,8 @@ namespace FuzzySetDynamicVisualizer.VizObjects
 
         public void arrange()
         {
-            foreach (MemberViz memObj in members)
-                arrangeMember(memObj);
+            foreach (MemberViz memberVizObj in memberVizs)
+                arrangeMember(memberVizObj);
 
             if (useHeatmaps)
                 this.setupHeatmaps();
@@ -199,17 +199,17 @@ namespace FuzzySetDynamicVisualizer.VizObjects
          * 
          * The angle around the center is random but the 
         */
-        private void arrangeMember(MemberViz memObj)
+        private void arrangeMember(MemberViz memberVizObj)
         {
-            double membershipRate = ((double)memObj.member.getMembershipAsPercent(set) / 100D);
+            double membershipRate = ((double)memberVizObj.member.getMembershipAsPercent(set) / 100D);
             double memberRadius = membershipRate * (double)Radius;
             double angle = randGenerator.NextDouble() * (2D * Math.PI);
 
             int xOffset = (int)((double)memberRadius * Math.Sin(angle));
             int yOffset = (int)((double)memberRadius * Math.Cos(angle));
 
-            memObj.move(0, 0);
-            memObj.move(xOffset, yOffset);
+            memberVizObj.move(0, 0);
+            memberVizObj.move(xOffset, yOffset);
 
         }
 
@@ -243,38 +243,33 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             return set.label;
         }
 
-        public List<MemberViz> getMemberObjs()
-        {
-            return members;
-        }
-        
         public void addMemberObject(MemberViz newObj)
         {
-            this.members.Add(newObj);
+            this.memberVizs.Add(newObj);
 
             arrangeMember(newObj);
         }
 
         internal void setMemberRadius(int newRadius)
         {
-            foreach (MemberViz memObj in members)
-                memObj.Radius = newRadius;
+            foreach (MemberViz memberVizObj in memberVizs)
+                memberVizObj.Radius = newRadius;
         }
 
         internal int getMemberRadius()
         {
             //I can do this because I know that all of the members are uniform. 
-            if (members.Count != 0)
-                return members[0].Radius;
+            if (memberVizs.Count != 0)
+                return memberVizs[0].Radius;
             else return 0;
         }
 
         public override void setScale(float newScale)
         {
             this.scale = newScale;
-            foreach (MemberViz memObj in members)
+            foreach (MemberViz memberVizObj in memberVizs)
             {
-                memObj.setScale(newScale);
+                memberVizObj.setScale(newScale);
             }
         }
 
@@ -318,7 +313,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             double percentStep = (100.0d / numBins);
 
             //this is where we actually end up doing more work than the triangle/recursive method
-            foreach (MemberViz member in members)
+            foreach (MemberViz member in memberVizs)
             {
                 int memberIndex = (int)Math.Floor((double)(100 - member.member.getMembershipAsPercent(this.set)) / (double)percentStep);
                 if (memberIndex == heatmapBins.Length)  // only happens in the case where the membership is 0
