@@ -256,11 +256,7 @@ namespace FuzzySetDynamicVisualizer
         {
             foreach (VizObject vizObj in VizObjects)
             {
-                if (vizObj is MemberViz)
-                {
-                    ((MemberViz)vizObj).Radius = newRadius;
-                }
-                else if (vizObj is SetViz)
+                if (vizObj is SetViz)
                 {
                     ((SetViz)vizObj).setMemberRadius(newRadius);
                 }

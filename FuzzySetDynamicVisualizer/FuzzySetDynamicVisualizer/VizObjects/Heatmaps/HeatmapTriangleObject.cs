@@ -8,7 +8,7 @@ using FuzzySetDynamicVisualizer.DataStructures;
 
 namespace FuzzySetDynamicVisualizer.VizObjects
 {
-    public class HeatmapTriangleObject : VizObject
+    public class HeatmapTriangleObject : VizAttachedObject
     {
         public readonly List<MemberViz> members;
         public readonly Point[] points = new Point[3];
@@ -94,13 +94,7 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             location.Y = y;
         }
 
-        public override void visualize(Graphics graphics)
-        {
-            SolidBrush brush = new SolidBrush(determineColor());
-            graphics.FillPolygon(brush, points);
-        }
-
-        public void visualize(Graphics graphics, Point parentPoint)
+        public override void visualize(Graphics graphics, Point parentPoint)
         {
             Point[] realPoints = new Point[3];
             realPoints[0] = new Point(parentPoint.X + points[0].X, parentPoint.Y + points[0].Y);

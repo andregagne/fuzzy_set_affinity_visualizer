@@ -7,7 +7,7 @@ using FuzzySetDynamicVisualizer.DataStructures;
 
 namespace FuzzySetDynamicVisualizer.VizObjects
 {
-    public class MemberViz : VizObject
+    public class MemberViz : VizAttachedObject
     {
         public readonly Member member;
 
@@ -25,13 +25,12 @@ namespace FuzzySetDynamicVisualizer.VizObjects
             this.member = member;
         }
 
-        public override void visualize(Graphics graphics)
+        public override void visualize(Graphics graphics, Point parentPoint)
         {
-            graphics.FillEllipse(new SolidBrush(Color.Black), this.location.X - Radius, this.location.Y - Radius, Radius * 2, Radius * 2);
+            graphics.FillEllipse(new SolidBrush(Color.Black),
+                parentPoint.X + this.location.X - Radius, parentPoint.Y + this.location.Y - Radius, Radius * 2, Radius * 2);
         }
 
-        //this acknowledges that the member object is a special object that will always be a part of another visual object
-        // as a result we never need to keep it updated.
         public void visualize(Graphics graphics, Point parentPoint, Brush brush)
         {
             graphics.FillEllipse(brush, parentPoint.X + this.location.X - Radius, parentPoint.Y + this.location.Y - Radius, Radius * 2, Radius * 2);
